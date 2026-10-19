@@ -11,6 +11,8 @@ export const safeUrl = (url: string | undefined) => {
 
 export const hostnameOf = (url: string | undefined) => safeUrl(url)?.hostname.replace(/^www\./, "") ?? ""
 
+export const displayUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/i, "").replace(/\/$/, "")
+
 export const stripHash = (url: string) => {
   const index = url.indexOf("#")
   return index === -1 ? url : url.slice(0, index)

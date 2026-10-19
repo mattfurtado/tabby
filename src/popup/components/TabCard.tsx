@@ -1,6 +1,7 @@
 import { X } from "lucide-react"
 
 import { sendMessage } from "~src/core/messages"
+import { displayUrl } from "~src/core/url"
 
 import type { LiveGroup } from "../hooks/useWindowData"
 import type { TabRow } from "../rows"
@@ -21,6 +22,7 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
   const copies = row.tabs.length
   const target = row.tabs.find((tab) => tab.active) ?? row.tabs[0]
   const hasDetails = row.active || row.kinds.length > 0 || !!row.group || groups.length > 0
+  const url = displayUrl(row.url)
   const closeLabel = copies > 1 ? "Close tabs" : "Close tab"
 
   return (
@@ -43,18 +45,20 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
       )}>
       <div className="flex items-start gap-3">
         <Favicon url={row.favIconUrl} className="mt-0.5" />
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation()
-            void activateTab(target.id)
-          }}
-          className="flex min-w-0 items-baseline gap-1 text-left"
-          title={row.url}>
-          <span className="truncate text-sm font-medium text-gray-900 hover:underline dark:text-gray-100">{row.title}</span>
-          {copies > 1 && <span className="shrink-0 text-sm text-gray-400">({copies - 1})</span>}
-        </button>
-        <div className="flex-1" />
+        <div className="min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              void activateTab(target.id)
+            }}
+            className="flex max-w-full items-baseline gap-1 text-left"
+            title={row.url}>
+            <span className="truncate text-sm font-medium text-gray-900 hover:underline dark:text-gray-100">{row.title}</span>
+            {copies > 1 && <span className="shrink-0 text-sm text-gray-400">({copies - 1})</span>}
+          </button>
+          {url && url !== row.title && <div className="truncate text-xs text-gray-500 dark:text-gray-400">{url}</div>}
+        </div>
         <button
           type="button"
           onClick={(event) => {
