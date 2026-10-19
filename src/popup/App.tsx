@@ -12,7 +12,7 @@ import { aiProblem } from "./components/RefreshStatus"
 import { TabsView } from "./components/TabsView"
 import { cx } from "./components/ui"
 import { useCleanupSuggestions } from "./hooks/useCleanupSuggestions"
-import { useColorScheme } from "./hooks/useColorScheme"
+import { useAppearance, useColorScheme } from "./hooks/useColorScheme"
 import { useModelStatus } from "./hooks/useModelStatus"
 import { useStorageValue } from "./hooks/useStorageValue"
 import { useTabsModel } from "./hooks/useTabsModel"
@@ -27,12 +27,12 @@ const toInfo = (tab: LiveTab): TabInfo => ({
 })
 
 export const App = () => {
-  useColorScheme()
   const inTab = useMemo(() => new URLSearchParams(location.search).get("view") === "tab", [])
   const view = usePopupStore((state) => state.view)
   const creatingGroup = usePopupStore((state) => state.creatingGroup)
   const { tabs, groups, loaded, refresh: refreshWindow } = useWindowData()
   const settings = useStorageValue("settings")
+  useColorScheme(useAppearance())
   const heuristic = useStorageValue("heuristic_suggestions")
   const ai = useStorageValue("ai_suggestions")
   const cleanup = useCleanupSuggestions()

@@ -101,6 +101,9 @@ export interface AnalysisStatus {
 
 export type StaleUnit = "minutes" | "hours" | "days"
 
+export const APPEARANCES = ["system", "light", "dark"] as const
+export type Appearance = (typeof APPEARANCES)[number]
+
 export interface CleanupChecks {
   pr: boolean
   duplicate: boolean
@@ -111,6 +114,7 @@ export interface CleanupChecks {
 }
 
 export interface Settings {
+  appearance: Appearance
   useAI: boolean
   customInstructions: string
   minGroupSize: number
@@ -125,6 +129,7 @@ export interface Settings {
 export const MAX_CUSTOM_INSTRUCTIONS = 500
 
 export const DEFAULT_SETTINGS: Settings = {
+  appearance: "system",
   useAI: false,
   customInstructions: "",
   minGroupSize: 2,

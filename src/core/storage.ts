@@ -1,6 +1,8 @@
 import {
+  APPEARANCES,
   DEFAULT_SETTINGS,
   type AnalysisStatus,
+  type Appearance,
   GROUP_COLORS,
   MAX_CUSTOM_INSTRUCTIONS,
   type DuplicateSuggestion,
@@ -78,6 +80,7 @@ export const normalizeSettings = (raw: unknown): Settings => {
     Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
 
   return {
+    appearance: APPEARANCES.includes(input.appearance as Appearance) ? (input.appearance as Appearance) : base.appearance,
     useAI: bool(input.useAI, base.useAI),
     customInstructions:
       typeof input.customInstructions === "string"

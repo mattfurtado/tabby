@@ -28,7 +28,7 @@ Tabby is a Chrome extension that suggests tab groups and flags tabs that are saf
 </table>
 
 <p align="center">
-  <img src="docs/screenshots/settings.png" width="600" alt="Settings page with AI grouping, group size limits and cleanup check toggles">
+  <img src="docs/screenshots/settings.png" width="600" alt="Settings page with appearance, AI grouping, group size limits and cleanup check toggles">
 </p>
 
 ## Features
@@ -46,6 +46,7 @@ Tabby is a Chrome extension that suggests tab groups and flags tabs that are saf
   - Stale tabs that you haven't viewed for a configurable time (48 hours by default)
 - **Tabs view.** Every tab is listed in one place, with cleanup badges, search, filters, bulk Close and Group, and a Move menu. Duplicate tabs collapse into a single card.
 - **Toolbar badge.** The badge shows how many suggestions are waiting.
+- **Appearance.** Choose light, dark or system (follows your computer's setting) on the settings page.
 
 ## Development
 

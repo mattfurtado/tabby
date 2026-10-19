@@ -1,11 +1,19 @@
-import { CheckCircle2, Download, Loader2, XCircle } from "lucide-react"
-import { useCallback, useEffect, useState, type ReactNode } from "react"
+import { CheckCircle2, Download, Loader2, Monitor, Moon, Sun, XCircle } from "lucide-react"
+import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from "react"
 
 import { downloadModel, modelAvailability } from "~src/core/ai"
 import { getItem, getSettings, normalizeSettings, setItem } from "~src/core/storage"
-import { DEFAULT_SETTINGS, MAX_CUSTOM_INSTRUCTIONS, type CleanupChecks, type Settings, type StaleUnit } from "~src/core/types"
+import {
+  DEFAULT_SETTINGS,
+  MAX_CUSTOM_INSTRUCTIONS,
+  type Appearance,
+  type CleanupChecks,
+  type Settings,
+  type StaleUnit
+} from "~src/core/types"
 
 import { Logo } from "../popup/components/Layout"
+import { cacheAppearance, cachedAppearance, useColorScheme } from "../popup/hooks/useColorScheme"
 import { Button, cx } from "../popup/components/ui"
 
 const Toggle = ({ checked, onChange, label }: { checked: boolean; onChange: (value: boolean) => void; label: string }) => (
@@ -17,7 +25,7 @@ const Toggle = ({ checked, onChange, label }: { checked: boolean; onChange: (val
     onClick={() => onChange(!checked)}
     className={cx(
       "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
-      checked ? "bg-ginger-600" : "bg-gray-600"
+      checked ? "bg-ginger-600" : "bg-gray-300 dark:bg-gray-600"
     )}>
     <span
       className={cx(
@@ -29,9 +37,9 @@ const Toggle = ({ checked, onChange, label }: { checked: boolean; onChange: (val
 )
 
 const Section = ({ title, description, children }: { title: string; description?: string; children: ReactNode }) => (
-  <section className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-    <h2 className="text-sm font-semibold text-gray-100">{title}</h2>
-    {description && <p className="mt-1 text-xs text-gray-400">{description}</p>}
+  <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+    <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+    {description && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{description}</p>}
     <div className="mt-4 space-y-4">{children}</div>
   </section>
 )
@@ -39,15 +47,17 @@ const Section = ({ title, description, children }: { title: string; description?
 const Row = ({ title, description, control }: { title: string; description?: ReactNode; control: ReactNode }) => (
   <div className="flex items-start gap-4">
     <div className="min-w-0 flex-1">
-      <div className="text-sm text-gray-200">{title}</div>
-      {description && <div className="mt-0.5 text-xs text-gray-400">{description}</div>}
+      <div className="text-sm text-gray-800 dark:text-gray-200">{title}</div>
+      {description && <div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{description}</div>}
     </div>
     <div className="shrink-0">{control}</div>
   </div>
 )
 
-const NUMBER_INPUT =
-  "w-20 rounded-md border border-gray-700 bg-gray-950 px-2 py-1 text-sm text-gray-100 outline-none focus:border-ginger-500"
+const FIELD =
+  "rounded-md border border-gray-300 bg-white text-sm text-gray-900 outline-none focus:border-ginger-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+
+const NUMBER_INPUT = cx(FIELD, "w-20 px-2 py-1")
 
 const parseOptionalInt = (value: string) => {
   const parsed = parseInt(value, 10)
@@ -55,10 +65,10 @@ const parseOptionalInt = (value: string) => {
 }
 
 const STATUS_COPY: Record<LanguageModelAvailability, { label: string; tone: string }> = {
-  available: { label: "Ready", tone: "text-moss-400" },
-  downloadable: { label: "Not downloaded", tone: "text-amber-400" },
-  downloading: { label: "Downloading…", tone: "text-ginger-400" },
-  unavailable: { label: "Unavailable on this device", tone: "text-red-400" }
+  available: { label: "Ready", tone: "text-moss-600 dark:text-moss-400" },
+  downloadable: { label: "Not downloaded", tone: "text-amber-600 dark:text-amber-400" },
+  downloading: { label: "Downloading…", tone: "text-ginger-600 dark:text-ginger-400" },
+  unavailable: { label: "Unavailable on this device", tone: "text-red-600 dark:text-red-400" }
 }
 
 const ModelStatus = () => {
@@ -108,20 +118,48 @@ const ModelStatus = () => {
         </Button>
       </div>
       {progress !== null && (
-        <div className="h-1.5 overflow-hidden rounded-full bg-gray-800">
+        <div className="h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
           <div className="h-full bg-ginger-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
         </div>
       )}
       {status === "unavailable" && (
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Gemini Nano needs desktop Chrome 138+ with On-device AI turned on in Settings &gt; AI Innovations, and capable
           hardware. Tabby keeps working with its built-in rules. See the README for setup steps.
         </p>
       )}
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   )
 }
+
+const APPEARANCE_OPTIONS: { value: Appearance; label: string; icon: ComponentType<{ className?: string }> }[] = [
+  { value: "system", label: "System", icon: Monitor },
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon }
+]
+
+const AppearancePicker = ({ value, onChange }: { value: Appearance; onChange: (value: Appearance) => void }) => (
+  <div role="radiogroup" aria-label="Appearance" className="flex rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
+    {APPEARANCE_OPTIONS.map(({ value: option, label, icon: Icon }) => (
+      <button
+        key={option}
+        type="button"
+        role="radio"
+        aria-checked={value === option}
+        onClick={() => onChange(option)}
+        className={cx(
+          "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+          value === option
+            ? "bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-gray-100"
+            : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+        )}>
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+      </button>
+    ))}
+  </div>
+)
 
 const CHECKS: { key: keyof CleanupChecks; title: string; description: string }[] = [
   { key: "pr", title: "Merged & closed PRs", description: "GitHub pull requests that have been merged or closed." },
@@ -146,8 +184,9 @@ export const Options = () => {
     setDismissedCount(settings.dismissedSuggestions.length + settings.dismissedPRUrls.length + stale.length)
   }, [])
 
+  useColorScheme(draft?.appearance ?? cachedAppearance())
+
   useEffect(() => {
-    document.documentElement.classList.add("dark")
     void load()
   }, [load])
 
@@ -165,7 +204,7 @@ export const Options = () => {
 
   if (!draft || !saved) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
         <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
       </div>
     )
@@ -182,6 +221,7 @@ export const Options = () => {
       dismissedPRUrls: latest.dismissedPRUrls
     })
     await setItem("settings", next)
+    cacheAppearance(next.appearance)
     setSaved(next)
     setDraft(next)
     setSavedFlash(true)
@@ -210,7 +250,7 @@ export const Options = () => {
   const isDefault = JSON.stringify(defaultsDraft) === JSON.stringify(draft)
 
   return (
-    <div className="min-h-screen bg-gray-950 pb-24 text-gray-100">
+    <div className="min-h-screen bg-gray-50 pb-24 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
       <div className="mx-auto max-w-2xl px-6 py-8">
         <header className="mb-6 flex items-center gap-3">
           <Logo />
@@ -218,6 +258,14 @@ export const Options = () => {
         </header>
 
         <div className="space-y-5">
+          <Section title="Appearance">
+            <Row
+              title="Theme"
+              description="System follows your computer's light or dark setting."
+              control={<AppearancePicker value={draft.appearance} onChange={(appearance) => patch({ appearance })} />}
+            />
+          </Section>
+
           <Section title="AI grouping" description="Runs entirely on your device with Chrome's built-in Gemini Nano.">
             <Row
               title="Use AI"
@@ -226,15 +274,15 @@ export const Options = () => {
             />
             {draft.useAI && (
               <>
-                <div className="rounded-lg border border-gray-800 bg-gray-950 p-3">
-                  <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-400">On-device AI model</div>
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-950">
+                  <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">On-device AI model</div>
                   <ModelStatus />
                 </div>
                 <div>
-                  <label htmlFor="custom-instructions" className="text-sm text-gray-200">
+                  <label htmlFor="custom-instructions" className="text-sm text-gray-800 dark:text-gray-200">
                     Custom instructions
                   </label>
-                  <p className="mt-0.5 text-xs text-gray-400">
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                     Extra guidance for the model, like “Keep work and personal tabs separate” or “Name groups after
                     Jira tickets”.
                   </p>
@@ -244,7 +292,7 @@ export const Options = () => {
                     maxLength={MAX_CUSTOM_INSTRUCTIONS}
                     value={draft.customInstructions}
                     onChange={(event) => patch({ customInstructions: event.target.value.slice(0, MAX_CUSTOM_INSTRUCTIONS) })}
-                    className="mt-2 w-full resize-y rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 outline-none focus:border-ginger-500"
+                    className={cx(FIELD, "mt-2 w-full resize-y px-3 py-2")}
                   />
                   <div className="text-right text-xs text-gray-500">
                     {draft.customInstructions.length}/{MAX_CUSTOM_INSTRUCTIONS}
@@ -257,7 +305,7 @@ export const Options = () => {
           <Section title="Group suggestions">
             <Row
               title="Minimum group size"
-              description={minInvalid ? <span className="text-red-400">Must be at least 2</span> : "Smallest group Tabby will suggest."}
+              description={minInvalid ? <span className="text-red-600 dark:text-red-400">Must be at least 2</span> : "Smallest group Tabby will suggest."}
               control={
                 <input
                   type="number"
@@ -271,7 +319,7 @@ export const Options = () => {
             <Row
               title="Maximum group size"
               description={
-                maxInvalid ? <span className="text-red-400">Must be at least the minimum size</span> : "Leave empty for no limit."
+                maxInvalid ? <span className="text-red-600 dark:text-red-400">Must be at least the minimum size</span> : "Leave empty for no limit."
               }
               control={
                 <input
@@ -315,7 +363,7 @@ export const Options = () => {
                   }
                 />
                 {check.key === "stale" && draft.cleanupChecks.stale && (
-                  <div className="flex items-center gap-2 pl-0.5 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 pl-0.5 text-xs text-gray-500 dark:text-gray-400">
                     Not viewed for
                     <input
                       type="number"
@@ -335,7 +383,7 @@ export const Options = () => {
                         patch({ staleThreshold: { ...draft.staleThreshold, unit: event.target.value as StaleUnit } })
                       }
                       aria-label="Stale threshold unit"
-                      className="rounded-md border border-gray-700 bg-gray-950 px-2 py-1 text-sm text-gray-100 outline-none focus:border-ginger-500">
+                      className={cx(FIELD, "px-2 py-1")}>
                       <option value="minutes">minutes</option>
                       <option value="hours">hours</option>
                       <option value="days">days</option>
@@ -360,7 +408,7 @@ export const Options = () => {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-gray-800 bg-gray-900/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 border-t border-gray-200 bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-gray-900/95">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-6 py-3">
           <Button
             variant="ghost"
@@ -372,9 +420,9 @@ export const Options = () => {
           </Button>
           <span className="flex-1 text-sm">
             {dirty ? (
-              <span className="text-amber-400">Unsaved changes</span>
+              <span className="text-amber-600 dark:text-amber-400">Unsaved changes</span>
             ) : savedFlash ? (
-              <span className="text-moss-400">Saved</span>
+              <span className="text-moss-600 dark:text-moss-400">Saved</span>
             ) : null}
           </span>
           <Button variant="ghost" size="md" disabled={!dirty} title="Discard unsaved changes" onClick={() => setDraft(saved)}>
