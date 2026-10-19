@@ -1,0 +1,151 @@
+import { aiSuggestions } from "./ai"
+import {
+  duplicateSuggestions,
+  findPRTabs,
+  newTabSuggestions,
+  prSuggestions,
+  searchSuggestions,
+  staleSuggestions,
+  zoomSuggestions
+} from "./cleanup"
+import { computeGroupActions, type GroupSnapshot } from "./group-actions"
+import { heuristicSuggestions } from "./heuristics"
+import { reconcile } from "./reconcile"
+import { CLEANUP_KEYS, getItem, getSettings } from "./storage"
+import type { GroupColor, GroupSuggestion, PRState, TabInfo } from "./types"
+import { isHttpUrl } from "./url"
+
+export type Tab = chrome.tabs.Tab & { id: number }
+
+const BADGE_COLOR = "#1a73e8"
+
+export const toTabInfo = (tab: chrome.tabs.Tab): TabInfo => ({
+  id: tab.id!,
+  title: tab.title || tab.url || "Untitled",
+  url: tab.url || tab.pendingUrl || "",
+  favIconUrl: tab.favIconUrl
+})
+
+export const targetWindowId = async () => {
+  try {
+    const window = await chrome.windows.getLastFocused({ windowTypes: ["normal"] })
+    return window.id ?? null
+  } catch {
+    return null
+  }
+}
+
+const readPRState = async (tabId: number): Promise<PRState | null> => {
+  try {
+    const [injection] = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        const label = document.querySelector('[data-component="StateLabel"][data-status]')
+        const status = label?.getAttribute("data-status") ?? ""
+        if (status === "pullMerged" || status === "merged") return "merged"
+        if (status === "pullClosed" || status === "closed") return "closed"
+        return null
+      }
+    })
+    return (injection?.result as PRState | null) ?? null
+  } catch {
+    return null
+  }
+}
+
+const resolvePRStates = async (prTabs: Map<string, Tab[]>) => {
+  const cached = await getItem("pr_states")
+  const states: Record<string, PRState> = {}
+  await Promise.all(
+    [...prTabs].map(async ([url, tabs]) => {
+      const live = (await Promise.all(tabs.map((tab) => readPRState(tab.id)))).find(Boolean)
+      const state = live ?? cached[url]
+      if (state) states[url] = state
+    })
+  )
+  return states
+}
+
+const groupSnapshots = async (windowId: number, tabs: Tab[]): Promise<GroupSnapshot[]> => {
+  const groups = await chrome.tabGroups.query({ windowId })
+  return groups.map((group) => ({
+    id: group.id,
+    title: group.title ?? "",
+    color: group.color as GroupColor,
+    tabs: tabs.filter((tab) => tab.groupId === group.id).map(toTabInfo)
+  }))
+}
+
+export const updateBadge = async () => {
+  const keys = ["heuristic_suggestions", "ai_suggestions", "group_action_counts", ...CLEANUP_KEYS] as const
+  const values = await chrome.storage.local.get([...keys])
+  const ai = (values.ai_suggestions ?? []) as GroupSuggestion[]
+  const heuristic = (values.heuristic_suggestions ?? []) as GroupSuggestion[]
+  const counts = (values.group_action_counts ?? { add: 0, merge: 0 }) as { add: number; merge: number }
+  const cleanup = CLEANUP_KEYS.reduce((sum, key) => sum + ((values[key] as unknown[] | undefined)?.length ?? 0), 0)
+  const total = (ai.length ? ai.length : heuristic.length) + counts.add + counts.merge + cleanup
+  await chrome.action.setBadgeBackgroundColor({ color: BADGE_COLOR })
+  await chrome.action.setBadgeText({ text: total ? String(total) : "" })
+}
+
+export const runAnalysis = async () => {
+  const windowId = await targetWindowId()
+  if (windowId === null) return
+  const settings = await getSettings()
+  const ownPrefix = chrome.runtime.getURL("")
+  const allTabs = (await chrome.tabs.query({ windowId })).filter(
+    (tab): tab is Tab => tab.id !== undefined && !tab.pinned && !(tab.url ?? "").startsWith(ownPrefix)
+  )
+  const httpTabs = allTabs.filter((tab) => isHttpUrl(tab.url))
+  const ungrouped = httpTabs.filter((tab) => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE).map(toTabInfo)
+  const dismissed = new Set(settings.dismissedSuggestions)
+  const sizing = { minGroupSize: settings.minGroupSize, maxGroupSize: settings.maxGroupSize, maxGroups: settings.maxGroups }
+
+  let heuristic: GroupSuggestion[] = []
+  let ai: GroupSuggestion[] = []
+  if (ungrouped.length >= settings.minGroupSize) {
+    const freshHeuristic = heuristicSuggestions(ungrouped, settings).filter((item) => !dismissed.has(item.id))
+    const previousHeuristic = await getItem("heuristic_suggestions")
+    heuristic = reconcile(previousHeuristic, freshHeuristic, ungrouped, { ...sizing, excludeIds: dismissed })
+
+    if (settings.useAI) {
+      const freshAI = (await aiSuggestions(ungrouped, heuristic, settings)).filter((item) => !dismissed.has(item.id))
+      const previousAI = await getItem("ai_suggestions")
+      ai = reconcile(previousAI, freshAI, ungrouped, { ...sizing, excludeIds: dismissed })
+    }
+  }
+
+  const checks = settings.cleanupChecks
+  const prTabs = checks.pr ? findPRTabs(httpTabs) : new Map<string, Tab[]>()
+  const prStates = checks.pr ? await resolvePRStates(prTabs) : {}
+  const pr = checks.pr ? prSuggestions(prTabs, prStates, settings.dismissedPRUrls) : []
+  const duplicate = checks.duplicate ? duplicateSuggestions(httpTabs).filter((item) => !dismissed.has(item.id)) : []
+  const zoom = checks.zoom ? zoomSuggestions(httpTabs) : []
+  const newTab = checks.newTab ? newTabSuggestions(allTabs) : []
+  const search = checks.googleSearch ? searchSuggestions(httpTabs) : []
+
+  const flagged = new Set<number>()
+  for (const item of [...duplicate, ...zoom, ...newTab, ...search]) flagged.add(item.tabId)
+  for (const item of pr) item.tabIds.forEach((id) => flagged.add(id))
+  const stale = checks.stale
+    ? staleSuggestions(allTabs, settings.staleThreshold, flagged, await getItem("dismissed_stale"))
+    : []
+
+  const groupActions = computeGroupActions(await groupSnapshots(windowId, allTabs), ungrouped, dismissed)
+
+  await chrome.storage.local.set({
+    heuristic_suggestions: heuristic,
+    ai_suggestions: ai,
+    pr_suggestions: pr,
+    duplicate_suggestions: duplicate,
+    zoom_suggestions: zoom,
+    stale_suggestions: stale,
+    new_tab_suggestions: newTab,
+    google_search_suggestions: search,
+    group_action_counts: {
+      add: groupActions.filter((action) => action.type === "add-to-group").length,
+      merge: groupActions.filter((action) => action.type === "merge-groups").length
+    }
+  })
+  await updateBadge()
+}
