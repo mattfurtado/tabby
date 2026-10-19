@@ -62,7 +62,7 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
         </div>
         <MoveMenu tabIds={tabIds} currentGroupId={row.group?.id ?? null} groups={groups} />
         <Button
-          variant="danger"
+          variant="ghost-danger"
           onClick={() =>
             void sendMessage({
               type: "CLOSE_BULK",

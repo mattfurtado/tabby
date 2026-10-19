@@ -17,13 +17,14 @@ export const GROUP_COLOR_HEX: Record<GroupColor, string> = {
 
 export const cx = (...classes: (string | false | null | undefined)[]) => classes.filter(Boolean).join(" ")
 
-type TVariant = "primary" | "danger" | "ghost" | "outline"
+type TVariant = "primary" | "danger" | "ghost" | "ghost-danger" | "outline"
 
 const VARIANTS: Record<TVariant, string> = {
   primary:
     "bg-gray-800 text-white hover:bg-gray-700 disabled:bg-gray-800/50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white dark:disabled:bg-gray-100/50",
   danger: "bg-red-600 text-white hover:bg-red-500 disabled:bg-red-600/50",
   ghost: "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800",
+  "ghost-danger": "text-gray-600 hover:bg-red-600 hover:text-white dark:text-gray-300 dark:hover:bg-red-600 dark:hover:text-white",
   outline:
     "border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
 }
