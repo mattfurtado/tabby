@@ -54,7 +54,7 @@ export const Sidebar = ({ counts }: { counts: Record<TopView, number> }) => {
           className={cx(
             "flex items-center gap-2 rounded-md px-2.5 py-2 text-sm font-medium transition-colors",
             view === item
-              ? "bg-ember-50 text-ember-700 dark:bg-ember-950/60 dark:text-ember-300"
+              ? "bg-ginger-50 text-ginger-700 dark:bg-ginger-950/60 dark:text-ginger-300"
               : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
           )}>
           <Icon className="h-4 w-4" />
@@ -63,7 +63,7 @@ export const Sidebar = ({ counts }: { counts: Record<TopView, number> }) => {
             <span
               className={cx(
                 "min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-semibold leading-none",
-                view === item ? "bg-ember-600 text-white" : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                view === item ? "bg-ginger-600 text-white" : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
               )}>
               {counts[item]}
             </span>

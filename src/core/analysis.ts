@@ -17,7 +17,7 @@ import { isHttpUrl } from "./url"
 
 export type Tab = chrome.tabs.Tab & { id: number }
 
-const BADGE_COLOR = "#c25f1e"
+const BADGE_COLOR = "#d9761c"
 
 export const toTabInfo = (tab: chrome.tabs.Tab): TabInfo => ({
   id: tab.id!,

@@ -89,7 +89,7 @@ export const ColorPicker = ({ value, onChange }: { value: GroupColor; onChange: 
             type="button"
             title={color}
             onClick={() => onChange(color)}
-            className="flex h-6 w-6 items-center justify-center rounded-full data-[focus]:ring-2 data-[focus]:ring-ember-400"
+            className="flex h-6 w-6 items-center justify-center rounded-full data-[focus]:ring-2 data-[focus]:ring-ginger-400"
             style={{ backgroundColor: GROUP_COLOR_HEX[color] }}>
             {color === value && <Check className="h-3.5 w-3.5 text-white" />}
           </button>

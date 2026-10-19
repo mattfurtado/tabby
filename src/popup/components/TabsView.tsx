@@ -43,7 +43,7 @@ export const TabsView = ({ model, groups, loaded }: TabsViewProps) => {
               checked={allSelected}
               onChange={toggleAll}
               disabled={!visibleRows.length}
-              className="h-4 w-4 cursor-pointer rounded accent-ember-600"
+              className="h-4 w-4 cursor-pointer rounded accent-ginger-600"
             />
             {selectedRows.length > 0 ? `${selectedTabs} of ${visibleTabs} selected` : "Select all"}
           </label>
@@ -55,7 +55,7 @@ export const TabsView = ({ model, groups, loaded }: TabsViewProps) => {
               setSelected([])
             }}
             aria-label="Filter tabs"
-            className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700 outline-none focus:border-ember-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+            className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700 outline-none focus:border-ginger-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
             {filterOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

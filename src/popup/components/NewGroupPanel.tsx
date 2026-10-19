@@ -89,14 +89,14 @@ export const NewGroupPanel = ({ tabs, groups }: NewGroupPanelProps) => {
               if (event.key === "Enter" && name.trim() && pickedIds.length >= 2) void create()
             }}
             placeholder="Group name"
-            className="flex-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-ember-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+            className="flex-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-ginger-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           />
         </div>
         <input
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
           placeholder="Filter tabs"
-          className="w-full rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-900 outline-none placeholder:text-gray-400 focus:border-ember-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+          className="w-full rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-900 outline-none placeholder:text-gray-400 focus:border-ginger-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
         />
       </div>
       <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-4">
@@ -109,7 +109,7 @@ export const NewGroupPanel = ({ tabs, groups }: NewGroupPanelProps) => {
                   type="checkbox"
                   checked={picked.has(tab.id)}
                   onChange={() => toggle(tab.id)}
-                  className="h-3.5 w-3.5 accent-ember-600"
+                  className="h-3.5 w-3.5 accent-ginger-600"
                 />
                 <Favicon url={tab.favIconUrl} />
                 <span className="min-w-0 flex-1 truncate text-gray-800 dark:text-gray-200">{tab.title || tab.url}</span>

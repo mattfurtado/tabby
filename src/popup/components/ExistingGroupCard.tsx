@@ -137,9 +137,9 @@ export const ExistingGroupCard = ({
       {expanded && <TabList tabs={visibleTabs.map(toTabInfo)} />}
 
       {addAction && (
-        <div className="mt-3 rounded-md border border-dashed border-ember-300 bg-ember-50/60 p-2 dark:border-ember-800 dark:bg-ember-950/30">
+        <div className="mt-3 rounded-md border border-dashed border-ginger-300 bg-ginger-50/60 p-2 dark:border-ginger-800 dark:bg-ginger-950/30">
           <div className="flex items-center gap-2">
-            <span className="flex-1 text-xs font-medium text-ember-700 dark:text-ember-300">
+            <span className="flex-1 text-xs font-medium text-ginger-700 dark:text-ginger-300">
               Suggested to add ({addAction.tabs.length})
             </span>
             <Button variant="ghost" onClick={() => void sendMessage({ type: "DISMISS_SUGGESTION", suggestionId: addAction.id })}>

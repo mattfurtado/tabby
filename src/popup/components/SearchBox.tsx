@@ -12,7 +12,7 @@ export const SearchBox = ({ placeholder }: { placeholder: string }) => {
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-md border border-gray-200 bg-white py-1.5 pl-8 pr-7 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-ember-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+        className="w-full rounded-md border border-gray-200 bg-white py-1.5 pl-8 pr-7 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-ginger-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
       />
       {search && (
         <button

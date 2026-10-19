@@ -17,7 +17,7 @@ const Toggle = ({ checked, onChange, label }: { checked: boolean; onChange: (val
     onClick={() => onChange(!checked)}
     className={cx(
       "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
-      checked ? "bg-ember-600" : "bg-gray-600"
+      checked ? "bg-ginger-600" : "bg-gray-600"
     )}>
     <span
       className={cx(
@@ -47,7 +47,7 @@ const Row = ({ title, description, control }: { title: string; description?: Rea
 )
 
 const NUMBER_INPUT =
-  "w-20 rounded-md border border-gray-700 bg-gray-950 px-2 py-1 text-sm text-gray-100 outline-none focus:border-ember-500"
+  "w-20 rounded-md border border-gray-700 bg-gray-950 px-2 py-1 text-sm text-gray-100 outline-none focus:border-ginger-500"
 
 const parseOptionalInt = (value: string) => {
   const parsed = parseInt(value, 10)
@@ -55,9 +55,9 @@ const parseOptionalInt = (value: string) => {
 }
 
 const STATUS_COPY: Record<LanguageModelAvailability, { label: string; tone: string }> = {
-  available: { label: "Ready", tone: "text-green-400" },
+  available: { label: "Ready", tone: "text-moss-400" },
   downloadable: { label: "Not downloaded", tone: "text-amber-400" },
-  downloading: { label: "Downloading…", tone: "text-ember-400" },
+  downloading: { label: "Downloading…", tone: "text-ginger-400" },
   unavailable: { label: "Unavailable on this device", tone: "text-red-400" }
 }
 
@@ -109,7 +109,7 @@ const ModelStatus = () => {
       </div>
       {progress !== null && (
         <div className="h-1.5 overflow-hidden rounded-full bg-gray-800">
-          <div className="h-full bg-ember-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
+          <div className="h-full bg-ginger-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
         </div>
       )}
       {status === "unavailable" && (
@@ -244,7 +244,7 @@ export const Options = () => {
                     maxLength={MAX_CUSTOM_INSTRUCTIONS}
                     value={draft.customInstructions}
                     onChange={(event) => patch({ customInstructions: event.target.value.slice(0, MAX_CUSTOM_INSTRUCTIONS) })}
-                    className="mt-2 w-full resize-y rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 outline-none focus:border-ember-500"
+                    className="mt-2 w-full resize-y rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 outline-none focus:border-ginger-500"
                   />
                   <div className="text-right text-xs text-gray-500">
                     {draft.customInstructions.length}/{MAX_CUSTOM_INSTRUCTIONS}
@@ -335,7 +335,7 @@ export const Options = () => {
                         patch({ staleThreshold: { ...draft.staleThreshold, unit: event.target.value as StaleUnit } })
                       }
                       aria-label="Stale threshold unit"
-                      className="rounded-md border border-gray-700 bg-gray-950 px-2 py-1 text-sm text-gray-100 outline-none focus:border-ember-500">
+                      className="rounded-md border border-gray-700 bg-gray-950 px-2 py-1 text-sm text-gray-100 outline-none focus:border-ginger-500">
                       <option value="minutes">minutes</option>
                       <option value="hours">hours</option>
                       <option value="days">days</option>
@@ -374,7 +374,7 @@ export const Options = () => {
             {dirty ? (
               <span className="text-amber-400">Unsaved changes</span>
             ) : savedFlash ? (
-              <span className="text-green-400">Saved</span>
+              <span className="text-moss-400">Saved</span>
             ) : null}
           </span>
           <Button variant="ghost" size="md" disabled={!dirty} title="Discard unsaved changes" onClick={() => setDraft(saved)}>
