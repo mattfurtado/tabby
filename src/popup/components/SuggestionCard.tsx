@@ -1,8 +1,7 @@
 import { Menu, MenuButton, MenuHeading, MenuItem, MenuItems, MenuSection, MenuSeparator } from "@headlessui/react"
-import { ChevronDown, ChevronRight, Combine, Loader2, Pencil, Sparkles } from "lucide-react"
+import { ChevronDown, ChevronRight, Combine, Loader2, Pencil } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { suggestGroupName } from "~src/core/ai"
 import { sendMessage } from "~src/core/messages"
 import type { GroupColor, GroupSuggestion, TabInfo } from "~src/core/types"
 
@@ -17,8 +16,6 @@ interface SuggestionCardProps {
   visibleTabs: TabInfo[]
   existingGroups: LiveGroup[]
   otherSuggestions: { suggestion: GroupSuggestion; tabs: TabInfo[] }[]
-  canSuggestName: boolean
-  customInstructions: string
   forceExpanded: boolean
 }
 
@@ -28,15 +25,12 @@ export const SuggestionCard = ({
   visibleTabs,
   existingGroups,
   otherSuggestions,
-  canSuggestName,
-  customInstructions,
   forceExpanded
 }: SuggestionCardProps) => {
   const expanded = usePopupStore((state) => state.expanded[suggestion.id]) || forceExpanded
   const toggleExpanded = usePopupStore((state) => state.toggleExpanded)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(suggestion.name)
-  const [naming, setNaming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mergeTarget, setMergeTarget] = useState<{ suggestion: GroupSuggestion; tabs: TabInfo[] } | null>(null)
@@ -60,20 +54,6 @@ export const SuggestionCard = ({
   const commitEdit = () => {
     setEditing(false)
     void rename(draft)
-  }
-
-  const suggestName = async () => {
-    setNaming(true)
-    const name = await suggestGroupName(tabs, customInstructions)
-    setNaming(false)
-    if (!name) {
-      setError("Couldn't suggest a name right now")
-      return
-    }
-    setError(null)
-    setDraft(name)
-    setEditing(false)
-    await rename(name)
   }
 
   const run = async (action: () => Promise<{ ok: boolean; error?: string }>) => {
@@ -161,20 +141,9 @@ export const SuggestionCard = ({
               <Pencil className="h-3 w-3 shrink-0 text-gray-400 opacity-0 group-hover:opacity-100" />
             </button>
           )}
-          {canSuggestName && (
-            <Button variant="ghost" onClick={() => void suggestName()} disabled={naming} title="Suggest a name with on-device AI">
-              {naming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-              Suggest
-            </Button>
-          )}
           <span className="shrink-0 text-xs text-gray-400">
             {tabs.length} {tabs.length === 1 ? "tab" : "tabs"}
           </span>
-          {suggestion.source === "ai" && (
-            <span className="shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
-              AI
-            </span>
-          )}
         </div>
 
         {expanded && <TabList tabs={visibleTabs} />}

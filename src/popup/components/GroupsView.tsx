@@ -17,8 +17,6 @@ interface GroupsViewProps {
   groups: LiveGroup[]
   suggestions: GroupSuggestion[]
   actions: GroupAction[]
-  canSuggestName: boolean
-  customInstructions: string
   aiProblem: string | null
   useAI: boolean
   minGroupSize: number
@@ -47,8 +45,6 @@ export const GroupsView = ({
   groups,
   suggestions,
   actions,
-  canSuggestName,
-  customInstructions,
   aiProblem,
   useAI,
   minGroupSize,
@@ -143,8 +139,6 @@ export const GroupsView = ({
                 visibleTabs={entry.visibleTabs}
                 existingGroups={groups}
                 otherSuggestions={suggestionEntries.filter((other) => other.suggestion.id !== entry.suggestion.id)}
-                canSuggestName={canSuggestName}
-                customInstructions={customInstructions}
                 forceExpanded={searching}
               />
             ))}

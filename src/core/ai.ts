@@ -41,12 +41,6 @@ const GROUPING_SYSTEM_PROMPT = [
   "Respond with JSON only, no prose and no code fences."
 ].join("\n")
 
-const NAMING_SYSTEM_PROMPT = [
-  "You name browser tab groups.",
-  "Give a short topic-based name under 30 characters that describes what the tabs have in common.",
-  "Avoid generic service names. Respond with the name only."
-].join("\n")
-
 const GROUPS_SCHEMA = {
   type: "object",
   properties: {
@@ -190,28 +184,6 @@ export const aiSuggestions = async (
   } catch (error) {
     console.warn("[Tabby] AI grouping failed", error)
     return empty({ status: "error", availability, error: errorMessage(error) })
-  } finally {
-    session?.destroy()
-  }
-}
-
-export const suggestGroupName = async (tabs: TabInfo[], customInstructions: string) => {
-  const model = getLanguageModel()
-  if (!model || !tabs.length) return null
-  if ((await modelAvailability()) !== "available") return null
-
-  let session: LanguageModelSession | null = null
-  try {
-    session = await model.create({
-      ...LANGUAGE_OPTIONS,
-      initialPrompts: [{ role: "system", content: withInstructions(NAMING_SYSTEM_PROMPT, customInstructions) }]
-    })
-    const reply = await session.prompt(`Tabs:\n${tabs.map(tabLine).join("\n")}\n\nGroup name:`)
-    const name = reply.replace(/["`*]/g, "").split("\n")[0].trim().slice(0, 30)
-    return name || null
-  } catch (error) {
-    console.warn("[Tabby] AI naming failed", error)
-    return null
   } finally {
     session?.destroy()
   }

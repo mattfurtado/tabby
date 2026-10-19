@@ -13,7 +13,6 @@ import { TabsView } from "./components/TabsView"
 import { cx } from "./components/ui"
 import { useCleanupSuggestions } from "./hooks/useCleanupSuggestions"
 import { useAppearance, useColorScheme } from "./hooks/useColorScheme"
-import { useModelStatus } from "./hooks/useModelStatus"
 import { useStorageValue } from "./hooks/useStorageValue"
 import { useTabsModel } from "./hooks/useTabsModel"
 import { useWindowData, type LiveTab } from "./hooks/useWindowData"
@@ -37,7 +36,6 @@ export const App = () => {
   const ai = useStorageValue("ai_suggestions")
   const cleanup = useCleanupSuggestions()
   const analysisStatus = useStorageValue("analysis_status")
-  const modelStatus = useModelStatus(settings.useAI)
   const tabsModel = useTabsModel(tabs, groups, cleanup)
 
   const suggestions = ai.length ? ai : heuristic
@@ -77,8 +75,6 @@ export const App = () => {
               groups={groups}
               suggestions={suggestions}
               actions={actions}
-              canSuggestName={settings.useAI && modelStatus === "available"}
-              customInstructions={settings.customInstructions}
               aiProblem={settings.useAI ? aiProblem(analysisStatus.ai) : null}
               useAI={settings.useAI}
               minGroupSize={settings.minGroupSize}
