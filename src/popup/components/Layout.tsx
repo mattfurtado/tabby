@@ -119,7 +119,7 @@ export const Footer = ({ onRefresh, selectedRows, useAI }: FooterProps) => {
     <>
       <Button variant="ghost" size="md" onClick={() => void refresh()} disabled={refreshing}>
         {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-        Refresh
+        {refreshing ? "Refreshing…" : "Refresh"}
       </Button>
       <RefreshStatus refreshing={refreshing} useAI={useAI} status={analysisStatus} error={refreshError} />
     </>
