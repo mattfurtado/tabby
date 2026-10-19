@@ -53,7 +53,7 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
           onClick={() => void sendMessage({ type: "CLOSE_BULK", items: [{ id: row.key, tabIds }] })}
           title={closeLabel}
           aria-label={closeLabel}
-          className="-m-1 shrink-0 rounded-md p-1 text-gray-500 transition-colors hover:bg-red-600 hover:text-white dark:text-gray-400 dark:hover:bg-red-600 dark:hover:text-white">
+          className="-m-1 shrink-0 rounded-md p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100">
           <X className="h-4 w-4" />
         </button>
       </div>
