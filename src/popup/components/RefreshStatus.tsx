@@ -14,6 +14,8 @@ const relativeTime = (since: number, now: number) => {
   return `${Math.round(minutes / 60)}h ago`
 }
 
+const FADE_AFTER_MS = 5000
+
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`
 
 export const aiProblem = (ai: AIRunResult) => {
@@ -45,7 +47,7 @@ export const RefreshStatus = ({ refreshing, useAI, status, error }: RefreshStatu
 
   useEffect(() => {
     setNow(Date.now())
-    const timer = setInterval(() => setNow(Date.now()), 5000)
+    const timer = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(timer)
   }, [status.finishedAt])
 
@@ -67,12 +69,15 @@ export const RefreshStatus = ({ refreshing, useAI, status, error }: RefreshStatu
   const problem = useAI ? aiProblem(status.ai) : null
   const summary = useAI ? aiSummary(status.ai) : "AI off"
   const parts = [`Updated ${relativeTime(status.finishedAt, now)}`, summary].filter(Boolean)
+  const faded = !problem && now - status.finishedAt >= FADE_AFTER_MS
 
   return (
     <span
+      aria-hidden={faded}
       className={cx(
-        "flex min-w-0 items-center gap-1.5 text-xs",
-        problem ? "text-amber-700 dark:text-amber-400" : "text-gray-500 dark:text-gray-400"
+        "flex min-w-0 items-center gap-1.5 text-xs transition-opacity duration-500",
+        problem ? "text-amber-700 dark:text-amber-400" : "text-gray-500 dark:text-gray-400",
+        faded && "opacity-0"
       )}
       title={problem ?? `Took ${(status.durationMs / 1000).toFixed(1)}s`}>
       {problem && <AlertTriangle className="h-3.5 w-3.5 shrink-0" />}
