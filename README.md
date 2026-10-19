@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="assets/icon128.png" width="128" height="128" alt="Tabby icon: a cartoon tabby cat">
-</p>
+<img src="assets/icon128.png" width="128" height="128" alt="Tabby icon: a cartoon tabby cat">
 
 # Tabby
 
