@@ -1,6 +1,40 @@
-# Tabby
+<p align="center">
+  <img src="assets/icon128.png" width="128" height="128" alt="Tabby icon: a cartoon tabby cat">
+</p>
 
-Tabby is a Chrome extension that suggests tab groups and flags tabs that are safe to close. Everything runs on your device. There are no accounts, API keys or servers.
+<h1 align="center">Tabby</h1>
+
+<p align="center">
+  Tabby is a Chrome extension that suggests tab groups and flags tabs that are safe to close.<br>
+  Everything runs on your device. There are no accounts, API keys or servers.
+</p>
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/groups-dark.png">
+        <img src="docs/screenshots/groups-light.png" alt="Groups view showing suggested MDN, Stack Overflow and react groups">
+      </picture>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/tabs-dark.png">
+        <img src="docs/screenshots/tabs-light.png" alt="Tabs view flagging merged PRs, a duplicate and a Zoom tab">
+      </picture>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><b>Groups</b>: suggested groups you can rename, recolor, merge or create in one click</td>
+    <td align="center"><b>Tabs</b>: every tab, with badges for the ones that are safe to close</td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/settings.png" width="600" alt="Settings page with AI grouping, group size limits and cleanup check toggles">
+</p>
 
 ## Features
 
