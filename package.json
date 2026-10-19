@@ -1,0 +1,44 @@
+{
+  "name": "tabby",
+  "displayName": "Tabby",
+  "version": "0.1.0",
+  "description": "Suggests tab groups and flags tabs that are safe to close, fully on-device.",
+  "author": "Tabby",
+  "private": true,
+  "scripts": {
+    "dev": "PLASMO_SRC_PATH=. plasmo dev",
+    "build": "PLASMO_SRC_PATH=. plasmo build",
+    "package": "PLASMO_SRC_PATH=. plasmo package",
+    "typecheck": "tsc --noEmit"
+  },
+  "manifest": {
+    "name": "Tabby",
+    "permissions": [
+      "tabs",
+      "tabGroups",
+      "storage",
+      "scripting"
+    ],
+    "host_permissions": [
+      "https://github.com/*"
+    ]
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.10",
+    "lucide-react": "^1.59.0",
+    "plasmo": "0.90.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.30",
+    "prettier": "^3.9.10",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.8.2"
+  }
+}
