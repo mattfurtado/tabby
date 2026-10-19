@@ -1,5 +1,6 @@
 import {
   DEFAULT_SETTINGS,
+  type AnalysisStatus,
   GROUP_COLORS,
   MAX_CUSTOM_INSTRUCTIONS,
   type DuplicateSuggestion,
@@ -28,6 +29,7 @@ export interface StorageSchema {
   group_action_counts: GroupActionCounts
   pr_states: Record<string, PRState>
   dismissed_stale: string[]
+  analysis_status: AnalysisStatus
 }
 
 export type StorageKey = keyof StorageSchema
@@ -55,7 +57,8 @@ const FALLBACKS: { [TKey in StorageKey]: () => StorageSchema[TKey] } = {
   google_search_suggestions: () => [],
   group_action_counts: () => ({ add: 0, merge: 0 }),
   pr_states: () => ({}),
-  dismissed_stale: () => []
+  dismissed_stale: () => [],
+  analysis_status: () => ({ finishedAt: 0, durationMs: 0, ai: { status: "off", groupCount: 0 } })
 }
 
 const positiveIntOrNull = (value: unknown): number | null => {

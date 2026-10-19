@@ -8,6 +8,7 @@ import { isHttpUrl } from "~src/core/url"
 import { Footer, Header, Sidebar } from "./components/Layout"
 import { GroupsView } from "./components/GroupsView"
 import { NewGroupPanel } from "./components/NewGroupPanel"
+import { aiProblem } from "./components/RefreshStatus"
 import { TabsView } from "./components/TabsView"
 import { cx } from "./components/ui"
 import { useCleanupSuggestions } from "./hooks/useCleanupSuggestions"
@@ -35,6 +36,7 @@ export const App = () => {
   const heuristic = useStorageValue("heuristic_suggestions")
   const ai = useStorageValue("ai_suggestions")
   const cleanup = useCleanupSuggestions()
+  const analysisStatus = useStorageValue("analysis_status")
   const modelStatus = useModelStatus(settings.useAI)
   const tabsModel = useTabsModel(tabs, groups, cleanup)
 
@@ -54,8 +56,9 @@ export const App = () => {
   const liveSuggestionCount = suggestions.filter((item) => item.tabIds.some((id) => liveIds.has(id))).length
 
   const refresh = async () => {
-    await sendMessage({ type: "REFRESH_SUGGESTIONS" })
+    const result = await sendMessage({ type: "REFRESH_SUGGESTIONS" })
     await refreshWindow()
+    return result.ok ? null : (result.error ?? "Unknown error")
   }
 
   return (
@@ -76,6 +79,7 @@ export const App = () => {
               actions={actions}
               canSuggestName={settings.useAI && modelStatus === "available"}
               customInstructions={settings.customInstructions}
+              aiProblem={settings.useAI ? aiProblem(analysisStatus.ai) : null}
               loaded={loaded}
             />
           ) : (
@@ -84,7 +88,7 @@ export const App = () => {
           {creatingGroup && <NewGroupPanel key={creatingGroup.tabIds.join(",")} tabs={tabs} groups={groups} />}
         </main>
       </div>
-      <Footer onRefresh={refresh} selectedRows={tabsModel.selectedRows} />
+      <Footer onRefresh={refresh} selectedRows={tabsModel.selectedRows} useAI={settings.useAI} />
     </div>
   )
 }

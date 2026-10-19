@@ -6,7 +6,9 @@ import logoUrl from "data-base64:~assets/logo.png"
 import { sendMessage } from "~src/core/messages"
 
 import type { TabRow } from "../rows"
+import { useStorageValue } from "../hooks/useStorageValue"
 import { usePopupStore, type TopView } from "../store"
+import { RefreshStatus } from "./RefreshStatus"
 import { Button, cx, IconButton } from "./ui"
 
 export const Logo = () => <img src={logoUrl} alt="" className="h-7 w-7" />
@@ -72,17 +74,22 @@ export const Sidebar = ({ counts }: { counts: Record<TopView, number> }) => {
   )
 }
 
+const MIN_REFRESH_MS = 600
+
 interface FooterProps {
-  onRefresh: () => Promise<void>
+  onRefresh: () => Promise<string | null>
   selectedRows: TabRow[]
+  useAI: boolean
 }
 
-export const Footer = ({ onRefresh, selectedRows }: FooterProps) => {
+export const Footer = ({ onRefresh, selectedRows, useAI }: FooterProps) => {
   const view = usePopupStore((state) => state.view)
   const openCreateGroup = usePopupStore((state) => state.openCreateGroup)
   const setSelected = usePopupStore((state) => state.setSelected)
   const [refreshing, setRefreshing] = useState(false)
+  const [refreshError, setRefreshError] = useState<string | null>(null)
   const [confirmClose, setConfirmClose] = useState(false)
+  const analysisStatus = useStorageValue("analysis_status")
 
   const selectedTabIds = selectedRows.flatMap((row) => row.tabs.map((tab) => tab.id))
   const count = selectedTabIds.length
@@ -93,7 +100,9 @@ export const Footer = ({ onRefresh, selectedRows }: FooterProps) => {
 
   const refresh = async () => {
     setRefreshing(true)
-    await onRefresh()
+    setRefreshError(null)
+    const [error] = await Promise.all([onRefresh(), new Promise((resolve) => setTimeout(resolve, MIN_REFRESH_MS))])
+    setRefreshError(error)
     setRefreshing(false)
   }
 
@@ -107,17 +116,20 @@ export const Footer = ({ onRefresh, selectedRows }: FooterProps) => {
   }
 
   const refreshButton = (
-    <Button variant="ghost" size="md" onClick={() => void refresh()} disabled={refreshing}>
-      {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-      Refresh
-    </Button>
+    <>
+      <Button variant="ghost" size="md" onClick={() => void refresh()} disabled={refreshing}>
+        {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+        Refresh
+      </Button>
+      <RefreshStatus refreshing={refreshing} useAI={useAI} status={analysisStatus} error={refreshError} />
+    </>
   )
 
   if (view === "groups") {
     return (
       <footer className="flex items-center gap-2 border-t border-gray-200 bg-white px-4 py-2.5 dark:border-gray-800 dark:bg-gray-900">
         {refreshButton}
-        <div className="flex-1" />
+        <div className="min-w-2 flex-1" />
         <Button variant="primary" size="md" onClick={() => openCreateGroup()}>
           <Plus className="h-4 w-4" />
           New group

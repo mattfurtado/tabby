@@ -1,4 +1,4 @@
-import { Layers, Search } from "lucide-react"
+import { AlertTriangle, Layers, Search } from "lucide-react"
 import { useMemo } from "react"
 
 import type { AddToGroupAction, GroupAction, GroupSuggestion, MergeGroupsAction, TabInfo } from "~src/core/types"
@@ -18,6 +18,7 @@ interface GroupsViewProps {
   actions: GroupAction[]
   canSuggestName: boolean
   customInstructions: string
+  aiProblem: string | null
   loaded: boolean
 }
 
@@ -35,6 +36,7 @@ export const GroupsView = ({
   actions,
   canSuggestName,
   customInstructions,
+  aiProblem,
   loaded
 }: GroupsViewProps) => {
   const search = usePopupStore((state) => state.search)
@@ -69,12 +71,22 @@ export const GroupsView = ({
     .map((entry) => ({ ...entry, visibleTabs: filterBySearch(entry.tabs, search) }))
     .filter((entry) => !searching || entry.visibleTabs.length > 0)
 
+  const banner = aiProblem ? (
+    <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <span>
+        {aiProblem}. Showing rule-based groups instead. Check the model status in Settings, then click Refresh.
+      </span>
+    </div>
+  ) : null
+
   if (loaded && !groups.length && !suggestionEntries.length && !searching) {
     return (
       <div className="flex h-full flex-col">
         <div className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50/95 px-4 py-2 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">
           <SearchBox placeholder="Search tabs in groups" />
         </div>
+        {banner && <div className="px-4 pt-4">{banner}</div>}
         <EmptyState icon={<Layers className="h-10 w-10" />} title="No groups yet">
           Open a few related tabs and Tabby will suggest groups. Click Refresh to check again.
         </EmptyState>
@@ -88,6 +100,7 @@ export const GroupsView = ({
         <SearchBox placeholder="Search tabs in groups" />
       </div>
       <div className="space-y-5 p-4">
+        {banner}
         {suggestionCards.length > 0 && (
           <section className="space-y-2">
             <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">

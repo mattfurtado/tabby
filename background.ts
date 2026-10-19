@@ -1,32 +1,34 @@
 import { runAnalysis, updateBadge } from "~src/core/analysis"
 import type { Message, MessageResponse } from "~src/core/messages"
 import { CLEANUP_KEYS, getItem, getSettings, setItem, updateSettings } from "~src/core/storage"
-import type { CleanupSuggestion, GroupSuggestion, Settings } from "~src/core/types"
+import type { AnalysisStatus, CleanupSuggestion, GroupSuggestion, Settings } from "~src/core/types"
 import { canonicalPRUrl } from "~src/core/url"
 
 const ANALYSIS_DELAY = 1500
 const REMOVAL_BATCH_DELAY = 50
 
 let analysisTimer: ReturnType<typeof setTimeout> | null = null
-let running: Promise<void> | null = null
+let running: Promise<AnalysisStatus | null> | null = null
 let rerunRequested = false
 
-const analyzeNow = async (): Promise<void> => {
+const analyzeNow = async (): Promise<AnalysisStatus | null> => {
   if (running) {
     rerunRequested = true
     return running
   }
   running = (async () => {
+    let status: AnalysisStatus | null = null
     try {
       do {
         rerunRequested = false
-        await runAnalysis()
+        status = await runAnalysis()
       } while (rerunRequested)
     } catch (error) {
       console.error("[Tabby] analysis failed", error)
     } finally {
       running = null
     }
+    return status
   })()
   return running
 }
@@ -101,8 +103,8 @@ const existingTabIds = async (tabIds: number[]) => {
 
 const handlers: { [TType in Message["type"]]: (message: Extract<Message, { type: TType }>) => Promise<MessageResponse> } = {
   REFRESH_SUGGESTIONS: async () => {
-    await analyzeNow()
-    return { ok: true }
+    const status = await analyzeNow()
+    return { ok: !!status, status, error: status ? undefined : "Analysis failed" }
   },
   APPLY_SUGGESTION: async ({ tabIds, name, color, suggestionId }) => {
     const valid = await existingTabIds(tabIds)

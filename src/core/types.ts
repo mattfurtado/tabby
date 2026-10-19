@@ -83,6 +83,21 @@ export interface GroupActionCounts {
   merge: number
 }
 
+export type AIRunStatus = "off" | "skipped" | "used" | "no-groups" | "unavailable" | "error"
+
+export interface AIRunResult {
+  status: AIRunStatus
+  groupCount: number
+  availability?: string
+  error?: string
+}
+
+export interface AnalysisStatus {
+  finishedAt: number
+  durationMs: number
+  ai: AIRunResult
+}
+
 export type StaleUnit = "minutes" | "hours" | "days"
 
 export interface CleanupChecks {

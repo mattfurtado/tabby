@@ -12,7 +12,7 @@ import { computeGroupActions, type GroupSnapshot } from "./group-actions"
 import { heuristicSuggestions } from "./heuristics"
 import { reconcile } from "./reconcile"
 import { CLEANUP_KEYS, getItem, getSettings } from "./storage"
-import type { GroupColor, GroupSuggestion, PRState, TabInfo } from "./types"
+import type { AIRunResult, AnalysisStatus, GroupColor, GroupSuggestion, PRState, TabInfo } from "./types"
 import { isHttpUrl } from "./url"
 
 export type Tab = chrome.tabs.Tab & { id: number }
@@ -88,9 +88,10 @@ export const updateBadge = async () => {
   await chrome.action.setBadgeText({ text: total ? String(total) : "" })
 }
 
-export const runAnalysis = async () => {
+export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
+  const startedAt = Date.now()
   const windowId = await targetWindowId()
-  if (windowId === null) return
+  if (windowId === null) return null
   const settings = await getSettings()
   const ownPrefix = chrome.runtime.getURL("")
   const allTabs = (await chrome.tabs.query({ windowId })).filter(
@@ -103,15 +104,18 @@ export const runAnalysis = async () => {
 
   let heuristic: GroupSuggestion[] = []
   let ai: GroupSuggestion[] = []
+  let aiRun: AIRunResult = { status: settings.useAI ? "skipped" : "off", groupCount: 0 }
   if (ungrouped.length >= settings.minGroupSize) {
     const freshHeuristic = heuristicSuggestions(ungrouped, settings).filter((item) => !dismissed.has(item.id))
     const previousHeuristic = await getItem("heuristic_suggestions")
     heuristic = reconcile(previousHeuristic, freshHeuristic, ungrouped, { ...sizing, excludeIds: dismissed })
 
     if (settings.useAI) {
-      const freshAI = (await aiSuggestions(ungrouped, heuristic, settings)).filter((item) => !dismissed.has(item.id))
+      const result = await aiSuggestions(ungrouped, heuristic, settings)
+      const freshAI = result.suggestions.filter((item) => !dismissed.has(item.id))
       const previousAI = await getItem("ai_suggestions")
       ai = reconcile(previousAI, freshAI, ungrouped, { ...sizing, excludeIds: dismissed })
+      aiRun = { ...result.run, groupCount: ai.length }
     }
   }
 
@@ -133,7 +137,11 @@ export const runAnalysis = async () => {
 
   const groupActions = computeGroupActions(await groupSnapshots(windowId, allTabs), ungrouped, dismissed)
 
+  const status: AnalysisStatus = { finishedAt: Date.now(), durationMs: Date.now() - startedAt, ai: aiRun }
+  console.info("[Tabby] analysis finished", status)
+
   await chrome.storage.local.set({
+    analysis_status: status,
     heuristic_suggestions: heuristic,
     ai_suggestions: ai,
     pr_suggestions: pr,
@@ -148,4 +156,5 @@ export const runAnalysis = async () => {
     }
   })
   await updateBadge()
+  return status
 }

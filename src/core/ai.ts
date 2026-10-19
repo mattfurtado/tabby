@@ -1,6 +1,6 @@
 import { isGroupColor } from "./storage"
 import { hashColor, makeSuggestion } from "./heuristics"
-import type { GroupSuggestion, Settings, TabInfo } from "./types"
+import type { AIRunResult, GroupSuggestion, Settings, TabInfo } from "./types"
 import { GROUP_COLORS, MAX_CUSTOM_INSTRUCTIONS } from "./types"
 import { hostnameOf } from "./url"
 
@@ -100,14 +100,24 @@ const promptWithFallback = async (session: LanguageModelSession, prompt: string)
   }
 }
 
+export interface AISuggestionsResult {
+  suggestions: GroupSuggestion[]
+  run: AIRunResult
+}
+
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error))
+
 export const aiSuggestions = async (
   tabs: TabInfo[],
   heuristics: GroupSuggestion[],
   settings: Settings
-): Promise<GroupSuggestion[]> => {
+): Promise<AISuggestionsResult> => {
+  const empty = (run: Omit<AIRunResult, "groupCount">): AISuggestionsResult => ({ suggestions: [], run: { ...run, groupCount: 0 } })
   const model = getLanguageModel()
-  if (!model || tabs.length < settings.minGroupSize) return []
-  if ((await modelAvailability()) !== "available") return []
+  if (!model) return empty({ status: "unavailable", availability: "missing", error: "The Prompt API isn't available in this browser" })
+  if (tabs.length < settings.minGroupSize) return empty({ status: "skipped" })
+  const availability = await modelAvailability()
+  if (availability !== "available") return empty({ status: "unavailable", availability })
 
   let session: LanguageModelSession | null = null
   try {
@@ -142,8 +152,12 @@ export const aiSuggestions = async (
       'Reply as {"groups":[{"name":"...","color":"...","tabIndexes":[0,1]}]}'
     ].join("\n")
 
-    const parsed = parseJsonObject(await promptWithFallback(session, prompt)) as { groups?: unknown } | null
-    if (!parsed || !Array.isArray(parsed.groups)) return []
+    const reply = await promptWithFallback(session, prompt)
+    const parsed = parseJsonObject(reply) as { groups?: unknown } | null
+    if (!parsed || !Array.isArray(parsed.groups)) {
+      console.warn("[Tabby] AI reply wasn't valid JSON", reply)
+      return empty({ status: "error", availability, error: "The model's reply couldn't be read" })
+    }
 
     const used = new Set<number>()
     const result: GroupSuggestion[] = []
@@ -166,10 +180,13 @@ export const aiSuggestions = async (
       const color = isGroupColor(raw.color) ? raw.color : hashColor(name)
       result.push(makeSuggestion(name, color, picked, "ai"))
     }
-    return result
+    return {
+      suggestions: result,
+      run: { status: result.length ? "used" : "no-groups", groupCount: result.length, availability }
+    }
   } catch (error) {
     console.warn("[Tabby] AI grouping failed", error)
-    return []
+    return empty({ status: "error", availability, error: errorMessage(error) })
   } finally {
     session?.destroy()
   }

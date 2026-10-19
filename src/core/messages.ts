@@ -1,4 +1,4 @@
-import type { GroupColor } from "./types"
+import type { AnalysisStatus, GroupColor } from "./types"
 
 export type Message =
   | { type: "REFRESH_SUGGESTIONS" }
@@ -18,6 +18,7 @@ export interface MessageResponse {
   ok: boolean
   error?: string
   groupId?: number
+  status?: AnalysisStatus | null
 }
 
 export const sendMessage = async (message: Message): Promise<MessageResponse> => {
