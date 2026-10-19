@@ -2,6 +2,7 @@ import { AlertTriangle, Layers, Search } from "lucide-react"
 import { useMemo } from "react"
 
 import type { AddToGroupAction, GroupAction, GroupSuggestion, MergeGroupsAction, TabInfo } from "~src/core/types"
+import { isHttpUrl } from "~src/core/url"
 
 import type { LiveGroup, LiveTab } from "../hooks/useWindowData"
 import { filterBySearch, normalizeQuery } from "../search"
@@ -19,6 +20,8 @@ interface GroupsViewProps {
   canSuggestName: boolean
   customInstructions: string
   aiProblem: string | null
+  useAI: boolean
+  minGroupSize: number
   loaded: boolean
 }
 
@@ -29,6 +32,16 @@ const liveTabInfo = (tab: LiveTab): TabInfo => ({
   favIconUrl: tab.favIconUrl
 })
 
+const explainNoSuggestions = (ungroupedCount: number, minGroupSize: number, useAI: boolean) => {
+  if (!ungroupedCount) return "All your web tabs are already in groups."
+  if (ungroupedCount < minGroupSize) {
+    const tabs = ungroupedCount === 1 ? "Only 1 tab is" : `Only ${ungroupedCount} tabs are`
+    return `${tabs} outside a group. Tabby needs at least ${minGroupSize} ungrouped tabs to suggest a new group.`
+  }
+  if (useAI) return `None of your ${ungroupedCount} ungrouped tabs fit a group.`
+  return `None of your ${ungroupedCount} ungrouped tabs matched a grouping rule. Turn on AI in Settings to group them by topic.`
+}
+
 export const GroupsView = ({
   tabs,
   groups,
@@ -37,6 +50,8 @@ export const GroupsView = ({
   canSuggestName,
   customInstructions,
   aiProblem,
+  useAI,
+  minGroupSize,
   loaded
 }: GroupsViewProps) => {
   const search = usePopupStore((state) => state.search)
@@ -80,6 +95,19 @@ export const GroupsView = ({
     </div>
   ) : null
 
+  const ungroupedCount = tabs.filter((tab) => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE && isHttpUrl(tab.url)).length
+  const noSuggestionsReason = explainNoSuggestions(ungroupedCount, minGroupSize, useAI)
+
+  const noSuggestionsNote =
+    loaded && !searching && !suggestionCards.length ? (
+      <section className="space-y-2">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Suggested groups</h2>
+        <p className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+          No suggestions right now. {noSuggestionsReason}
+        </p>
+      </section>
+    ) : null
+
   if (loaded && !groups.length && !suggestionEntries.length && !searching) {
     return (
       <div className="flex h-full flex-col">
@@ -88,7 +116,7 @@ export const GroupsView = ({
         </div>
         {banner && <div className="px-4 pt-4">{banner}</div>}
         <EmptyState icon={<Layers className="h-10 w-10" />} title="No groups yet">
-          Open a few related tabs and Tabby will suggest groups. Click Refresh to check again.
+          {noSuggestionsReason} Click Refresh to check again.
         </EmptyState>
       </div>
     )
@@ -101,6 +129,7 @@ export const GroupsView = ({
       </div>
       <div className="space-y-5 p-4">
         {banner}
+        {noSuggestionsNote}
         {suggestionCards.length > 0 && (
           <section className="space-y-2">
             <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">

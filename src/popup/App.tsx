@@ -80,6 +80,8 @@ export const App = () => {
               canSuggestName={settings.useAI && modelStatus === "available"}
               customInstructions={settings.customInstructions}
               aiProblem={settings.useAI ? aiProblem(analysisStatus.ai) : null}
+              useAI={settings.useAI}
+              minGroupSize={settings.minGroupSize}
               loaded={loaded}
             />
           ) : (

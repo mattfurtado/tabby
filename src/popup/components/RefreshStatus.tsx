@@ -65,7 +65,7 @@ export const RefreshStatus = ({ refreshing, useAI, status, error }: RefreshStatu
   if (!status.finishedAt) return null
 
   const problem = useAI ? aiProblem(status.ai) : null
-  const summary = useAI ? aiSummary(status.ai) : null
+  const summary = useAI ? aiSummary(status.ai) : "AI off"
   const parts = [`Updated ${relativeTime(status.finishedAt, now)}`, summary].filter(Boolean)
 
   return (
