@@ -4,7 +4,10 @@ import type { AIRunResult, GroupSuggestion, Settings, TabInfo } from "./types"
 import { GROUP_COLORS, MAX_CUSTOM_INSTRUCTIONS } from "./types"
 import { hostnameOf } from "./url"
 
-const LANGUAGE_OPTIONS = { expectedInputLanguages: ["en"], expectedOutputLanguages: ["en"] }
+const LANGUAGE_OPTIONS: Pick<LanguageModelCreateOptions, "expectedInputs" | "expectedOutputs"> = {
+  expectedInputs: [{ type: "text", languages: ["en"] }],
+  expectedOutputs: [{ type: "text", languages: ["en"] }]
+}
 
 const getLanguageModel = () => (typeof LanguageModel === "undefined" ? undefined : LanguageModel)
 

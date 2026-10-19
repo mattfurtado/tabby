@@ -21,8 +21,6 @@ interface LanguageModelCreateOptions {
   initialPrompts?: LanguageModelMessage[]
   expectedInputs?: LanguageModelExpected[]
   expectedOutputs?: LanguageModelExpected[]
-  expectedInputLanguages?: string[]
-  expectedOutputLanguages?: string[]
   signal?: AbortSignal
   monitor?: (monitor: LanguageModelCreateMonitor) => void
 }
