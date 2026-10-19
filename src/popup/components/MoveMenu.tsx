@@ -13,7 +13,8 @@ interface MoveMenuProps {
 export const MoveMenu = ({ tabIds, currentGroupId, groups }: MoveMenuProps) => {
   const targets = groups.filter((group) => group.id !== currentGroupId)
   const canUngroup = currentGroupId !== null
-  const disabled = !tabIds.length || (!canUngroup && !targets.length)
+
+  if (!tabIds.length || (!canUngroup && !targets.length)) return null
 
   const moveTo = async (groupId: number | null) => {
     const ids = tabIds as [number, ...number[]]
@@ -23,9 +24,7 @@ export const MoveMenu = ({ tabIds, currentGroupId, groups }: MoveMenuProps) => {
 
   return (
     <Menu>
-      <MenuButton
-        disabled={disabled}
-        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-800">
+      <MenuButton className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
         <FolderInput className="h-3.5 w-3.5" />
         Move
       </MenuButton>
