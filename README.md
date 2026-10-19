@@ -120,7 +120,7 @@ If the model is unavailable on weaker hardware, try these flags in `chrome://fla
 To check the status from the service worker console:
 
 ```js
-await LanguageModel.availability({ expectedInputLanguages: ["en"], expectedOutputLanguages: ["en"] })
+await LanguageModel.availability({ expectedInputs: [{ type: "text", languages: ["en"] }], expectedOutputs: [{ type: "text", languages: ["en"] }] })
 // "available" | "downloadable" | "downloading" | "unavailable"
 ```
 
