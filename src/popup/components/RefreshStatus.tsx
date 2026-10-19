@@ -1,4 +1,4 @@
-import { AlertTriangle, Loader2 } from "lucide-react"
+import { AlertTriangle } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import type { AIRunResult, AnalysisStatus } from "~src/core/types"
@@ -28,13 +28,6 @@ export const aiProblem = (ai: AIRunResult) => {
   return null
 }
 
-const aiSummary = (ai: AIRunResult) => {
-  if (ai.status === "used") return plural(ai.groupCount, "AI group")
-  if (ai.status === "no-groups") return ai.groupCount ? plural(ai.groupCount, "AI group") : "AI found no groups"
-  if (ai.status === "skipped") return "not enough ungrouped tabs for AI"
-  return null
-}
-
 interface RefreshStatusProps {
   refreshing: boolean
   useAI: boolean
@@ -51,14 +44,7 @@ export const RefreshStatus = ({ refreshing, useAI, status, error }: RefreshStatu
     return () => clearInterval(timer)
   }, [status.finishedAt])
 
-  if (refreshing) {
-    return (
-      <span className="flex min-w-0 items-center gap-1.5 truncate text-xs text-gray-500 dark:text-gray-400">
-        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
-        {useAI ? "Asking Gemini Nano… this can take a few seconds" : "Refreshing…"}
-      </span>
-    )
-  }
+  if (refreshing) return null
 
   if (error) {
     return <span className="truncate text-xs text-red-600 dark:text-red-400">Refresh failed: {error}</span>
@@ -67,8 +53,8 @@ export const RefreshStatus = ({ refreshing, useAI, status, error }: RefreshStatu
   if (!status.finishedAt) return null
 
   const problem = useAI ? aiProblem(status.ai) : null
-  const summary = useAI ? aiSummary(status.ai) : "AI off"
-  const parts = [`Updated ${relativeTime(status.finishedAt, now)}`, summary].filter(Boolean)
+  const suggestions = status.newSuggestionCount ? plural(status.newSuggestionCount, "new suggestion") : "no new suggestions"
+  const parts = [`Updated ${relativeTime(status.finishedAt, now)}`, suggestions, useAI ? null : "AI off"].filter(Boolean)
   const faded = !problem && now - status.finishedAt >= FADE_AFTER_MS
 
   return (

@@ -102,6 +102,9 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
   const dismissed = new Set(settings.dismissedSuggestions)
   const sizing = { minGroupSize: settings.minGroupSize, maxGroupSize: settings.maxGroupSize, maxGroups: settings.maxGroups }
 
+  const previousIds = new Set(
+    [...(await getItem("heuristic_suggestions")), ...(await getItem("ai_suggestions"))].map((item) => item.id)
+  )
   let heuristic: GroupSuggestion[] = []
   let ai: GroupSuggestion[] = []
   let aiRun: AIRunResult = { status: settings.useAI ? "skipped" : "off", groupCount: 0 }
@@ -137,7 +140,13 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
 
   const groupActions = computeGroupActions(await groupSnapshots(windowId, allTabs), ungrouped, dismissed)
 
-  const status: AnalysisStatus = { finishedAt: Date.now(), durationMs: Date.now() - startedAt, ai: aiRun }
+  const shown = ai.length ? ai : heuristic
+  const status: AnalysisStatus = {
+    finishedAt: Date.now(),
+    durationMs: Date.now() - startedAt,
+    newSuggestionCount: shown.filter((item) => !previousIds.has(item.id)).length,
+    ai: aiRun
+  }
   console.info("[Tabby] analysis finished", status)
 
   await chrome.storage.local.set({

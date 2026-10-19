@@ -95,6 +95,7 @@ export interface AIRunResult {
 export interface AnalysisStatus {
   finishedAt: number
   durationMs: number
+  newSuggestionCount: number
   ai: AIRunResult
 }
 

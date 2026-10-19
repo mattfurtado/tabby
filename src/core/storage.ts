@@ -58,7 +58,7 @@ const FALLBACKS: { [TKey in StorageKey]: () => StorageSchema[TKey] } = {
   group_action_counts: () => ({ add: 0, merge: 0 }),
   pr_states: () => ({}),
   dismissed_stale: () => [],
-  analysis_status: () => ({ finishedAt: 0, durationMs: 0, ai: { status: "off", groupCount: 0 } })
+  analysis_status: () => ({ finishedAt: 0, durationMs: 0, newSuggestionCount: 0, ai: { status: "off", groupCount: 0 } })
 }
 
 const positiveIntOrNull = (value: unknown): number | null => {
