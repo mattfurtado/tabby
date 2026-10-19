@@ -7,7 +7,7 @@ import type { TabRow } from "../rows"
 import { usePopupStore } from "../store"
 import { CleanupBadge, CurrentBadge } from "./CleanupBadge"
 import { MoveMenu } from "./MoveMenu"
-import { activateTab, Button, ColorDot, cx, Favicon } from "./ui"
+import { activateTab, ColorDot, cx, Favicon } from "./ui"
 
 interface TabCardProps {
   row: TabRow
@@ -20,6 +20,7 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
   const tabIds = row.tabs.map((tab) => tab.id)
   const copies = row.tabs.length
   const target = row.tabs.find((tab) => tab.active) ?? row.tabs[0]
+  const closeLabel = copies > 1 ? "Close tabs" : "Close tab"
 
   return (
     <div
@@ -46,6 +47,14 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
           <span className="truncate text-sm font-medium text-gray-900 hover:underline dark:text-gray-100">{row.title}</span>
           {copies > 1 && <span className="shrink-0 text-sm text-gray-400">({copies - 1})</span>}
         </button>
+        <button
+          type="button"
+          onClick={() => void sendMessage({ type: "CLOSE_BULK", items: [{ id: row.key, tabIds }] })}
+          title={closeLabel}
+          aria-label={closeLabel}
+          className="-m-1 shrink-0 rounded-md p-1 text-gray-500 transition-colors hover:bg-red-600 hover:text-white dark:text-gray-400 dark:hover:bg-red-600 dark:hover:text-white">
+          <X className="h-4 w-4" />
+        </button>
       </div>
       <div className="mt-2.5 flex items-center gap-1.5">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
@@ -61,17 +70,6 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
           )}
         </div>
         <MoveMenu tabIds={tabIds} currentGroupId={row.group?.id ?? null} groups={groups} />
-        <Button
-          variant="ghost-danger"
-          onClick={() =>
-            void sendMessage({
-              type: "CLOSE_BULK",
-              items: [{ id: row.key, tabIds }]
-            })
-          }>
-          <X className="h-3.5 w-3.5" />
-          {copies > 1 ? "Close tabs" : "Close tab"}
-        </Button>
       </div>
     </div>
   )
