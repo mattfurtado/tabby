@@ -83,7 +83,10 @@ export const buildRows = (tabs: LiveTab[], groups: LiveGroup[], suggestions: Cle
     })
   }
 
-  const priority = (row: TabRow) => (row.kinds.length ? BADGE_ORDER.indexOf(row.kinds[0]) : BADGE_ORDER.length)
+  const priority = (row: TabRow) => {
+    if (row.kinds.length) return BADGE_ORDER.indexOf(row.kinds[0])
+    return row.active ? BADGE_ORDER.length : BADGE_ORDER.length + 1
+  }
   return rows.sort((a, b) => priority(a) - priority(b) || a.lastAccessed - b.lastAccessed)
 }
 
