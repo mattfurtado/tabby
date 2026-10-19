@@ -120,7 +120,7 @@ export const SuggestionCard = ({
   const hasMergeTargets = existingGroups.length > 0 || otherSuggestions.length > 0
 
   return (
-    <div className="rounded-lg bg-gradient-to-r from-purple-600 to-blue-500 p-px">
+    <div className="rounded-lg bg-gradient-to-r from-ember-300 to-ember-500 dark:from-ember-800 dark:to-ember-600 p-px">
       <div className="rounded-[7px] bg-white p-3 dark:bg-gray-900">
         <div className="flex items-center gap-2">
           <button
@@ -149,7 +149,7 @@ export const SuggestionCard = ({
                   setEditing(false)
                 }
               }}
-              className="min-w-0 flex-1 rounded border border-blue-400 bg-transparent px-1.5 py-0.5 text-sm font-medium text-gray-900 outline-none dark:text-gray-100"
+              className="min-w-0 flex-1 rounded border border-ember-400 bg-transparent px-1.5 py-0.5 text-sm font-medium text-gray-900 outline-none dark:text-gray-100"
             />
           ) : (
             <button
@@ -182,9 +182,9 @@ export const SuggestionCard = ({
         {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
 
         {mergeTarget ? (
-          <div className="mt-3 flex items-center gap-2 rounded-md bg-blue-50 p-2 dark:bg-blue-950/40">
+          <div className="mt-3 flex items-center gap-2 rounded-md bg-ember-50 p-2 dark:bg-ember-950/40">
             <ColorDot color={mergeTarget.suggestion.color} />
-            <span className="flex-1 truncate text-xs text-blue-800 dark:text-blue-200">
+            <span className="flex-1 truncate text-xs text-ember-800 dark:text-ember-200">
               Create “{mergeTarget.suggestion.name}” with {mergeTarget.tabs.length + tabs.length} tabs?
             </span>
             <Button variant="ghost" onClick={() => setMergeTarget(null)}>

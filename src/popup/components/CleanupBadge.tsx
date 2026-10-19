@@ -7,7 +7,7 @@ import { cx } from "./ui"
 const STYLES: Record<BadgeKind, { className: string; icon: ComponentType<{ className?: string }> }> = {
   "pr-merged": { className: "bg-[#8250df] dark:bg-[#8957e5]", icon: GitMerge },
   "pr-closed": { className: "bg-[#cf222e] dark:bg-[#da3633]", icon: GitPullRequestClosed },
-  duplicate: { className: "bg-blue-500", icon: Copy },
+  duplicate: { className: "bg-ember-500", icon: Copy },
   zoom: { className: "bg-[#2d8cff]", icon: Video },
   newtab: { className: "bg-teal-600", icon: Plus },
   search: { className: "bg-amber-600", icon: Search },
@@ -30,7 +30,7 @@ export const CleanupBadge = ({ kind, staleSince }: { kind: BadgeKind; staleSince
 }
 
 export const CurrentBadge = () => (
-  <span className="inline-flex shrink-0 items-center rounded-full border border-blue-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-blue-600 dark:text-blue-400">
+  <span className="inline-flex shrink-0 items-center rounded-full border border-ember-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-ember-600 dark:text-ember-400">
     current
   </span>
 )

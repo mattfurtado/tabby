@@ -20,7 +20,8 @@ export const cx = (...classes: (string | false | null | undefined)[]) => classes
 type TVariant = "primary" | "danger" | "ghost" | "outline"
 
 const VARIANTS: Record<TVariant, string> = {
-  primary: "bg-blue-600 text-white hover:bg-blue-500 disabled:bg-blue-600/50",
+  primary:
+    "bg-gray-800 text-white hover:bg-gray-700 disabled:bg-gray-800/50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white dark:disabled:bg-gray-100/50",
   danger: "bg-red-600 text-white hover:bg-red-500 disabled:bg-red-600/50",
   ghost: "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800",
   outline:
@@ -88,7 +89,7 @@ export const ColorPicker = ({ value, onChange }: { value: GroupColor; onChange: 
             type="button"
             title={color}
             onClick={() => onChange(color)}
-            className="flex h-6 w-6 items-center justify-center rounded-full data-[focus]:ring-2 data-[focus]:ring-blue-400"
+            className="flex h-6 w-6 items-center justify-center rounded-full data-[focus]:ring-2 data-[focus]:ring-ember-400"
             style={{ backgroundColor: GROUP_COLOR_HEX[color] }}>
             {color === value && <Check className="h-3.5 w-3.5 text-white" />}
           </button>

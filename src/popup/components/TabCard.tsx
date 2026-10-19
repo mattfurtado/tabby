@@ -26,7 +26,7 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
       className={cx(
         "rounded-lg border bg-white px-3 py-2.5 transition-colors dark:bg-gray-900",
         isSelected
-          ? "border-blue-400 ring-1 ring-blue-400/40 dark:border-blue-500"
+          ? "border-ember-400 ring-1 ring-ember-400/40 dark:border-ember-500"
           : "border-gray-200 hover:border-gray-300 dark:border-gray-800 dark:hover:border-gray-700"
       )}>
       <div className="flex items-start gap-3">
@@ -35,7 +35,7 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
           checked={isSelected}
           onChange={() => toggleSelected(row.key)}
           aria-label={`Select ${row.title}`}
-          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-gray-300 accent-blue-600"
+          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-gray-300 accent-ember-600"
         />
         <Favicon url={row.favIconUrl} className="mt-0.5" />
         <button
