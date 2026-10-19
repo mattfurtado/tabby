@@ -20,7 +20,7 @@ export const Header = ({ inTab }: { inTab: boolean }) => {
   }
 
   return (
-    <header className="flex items-center gap-2 border-b border-gray-200 bg-white px-4 py-2.5 dark:border-gray-800 dark:bg-gray-900">
+    <header className="flex items-center gap-2 border-b border-gray-200 bg-white px-4 py-2.5 dark:border-gray-800 dark:bg-gray-950">
       <Logo />
       <h1 className="flex-1 text-base font-semibold tracking-tight text-gray-900 dark:text-gray-100">Tabby</h1>
       {!inTab && (
@@ -44,7 +44,7 @@ export const Sidebar = ({ counts }: { counts: Record<TopView, number> }) => {
   const view = usePopupStore((state) => state.view)
   const setView = usePopupStore((state) => state.setView)
   return (
-    <nav className="flex w-36 shrink-0 flex-col gap-1 border-r border-gray-200 bg-white p-2 dark:border-gray-800 dark:bg-gray-900">
+    <nav className="flex w-36 shrink-0 flex-col gap-1 border-r border-gray-200 bg-white p-2 dark:border-gray-800 dark:bg-gray-950">
       {NAV.map(({ view: item, label, icon: Icon }) => (
         <button
           key={item}
@@ -127,7 +127,7 @@ export const Footer = ({ onRefresh, selectedRows, useAI }: FooterProps) => {
 
   if (view === "groups") {
     return (
-      <footer className="flex items-center gap-2 border-t border-gray-200 bg-white px-4 py-2.5 dark:border-gray-800 dark:bg-gray-900">
+      <footer className="flex items-center gap-2 border-t border-gray-200 bg-white px-4 py-2.5 dark:border-gray-800 dark:bg-gray-950">
         {refreshButton}
         <div className="min-w-2 flex-1" />
         <Button variant="primary" size="md" onClick={() => openCreateGroup()}>
@@ -157,7 +157,7 @@ export const Footer = ({ onRefresh, selectedRows, useAI }: FooterProps) => {
   }
 
   return (
-    <footer className="flex items-center gap-2 border-t border-gray-200 bg-white px-4 py-2.5 dark:border-gray-800 dark:bg-gray-900">
+    <footer className="flex items-center gap-2 border-t border-gray-200 bg-white px-4 py-2.5 dark:border-gray-800 dark:bg-gray-950">
       {refreshButton}
       <div className="flex-1" />
       <Button variant="danger" size="md" disabled={!count} onClick={() => setConfirmClose(true)}>
