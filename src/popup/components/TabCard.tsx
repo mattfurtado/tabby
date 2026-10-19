@@ -49,16 +49,16 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
       </div>
       <div className="mt-2.5 flex items-center gap-1.5">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
-          {row.group && (
-            <span className="mr-1 flex min-w-0 items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-              <ColorDot color={row.group.color} className="h-2 w-2" />
-              <span className="truncate">{row.group.title || "Untitled group"}</span>
-            </span>
-          )}
           {row.active && <CurrentBadge />}
           {row.kinds.map((kind) => (
             <CleanupBadge key={kind} kind={kind} staleSince={row.staleSince} />
           ))}
+          {row.group && (
+            <span className="ml-1 flex min-w-0 items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              <ColorDot color={row.group.color} className="h-2 w-2" />
+              <span className="truncate">{row.group.title || "Untitled group"}</span>
+            </span>
+          )}
         </div>
         <MoveMenu tabIds={tabIds} currentGroupId={row.group?.id ?? null} groups={groups} />
         <Button
