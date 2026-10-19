@@ -2,12 +2,9 @@
   <img src="assets/icon128.png" width="128" height="128" alt="Tabby icon: a cartoon tabby cat">
 </p>
 
-<h1 align="center">Tabby</h1>
+# Tabby
 
-<p align="center">
-  Tabby is a Chrome extension that suggests tab groups and flags tabs that are safe to close.<br>
-  Everything runs on your device. There are no accounts, API keys or servers.
-</p>
+Tabby is a Chrome extension that suggests tab groups and flags tabs that are safe to close. Everything runs on your device. There are no accounts, API keys or servers.
 
 ## Screenshots
 
