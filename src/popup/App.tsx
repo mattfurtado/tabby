@@ -25,8 +25,7 @@ const toInfo = (tab: LiveTab): TabInfo => ({
   favIconUrl: tab.favIconUrl
 })
 
-export const App = () => {
-  const inTab = useMemo(() => new URLSearchParams(location.search).get("view") === "tab", [])
+export const App = ({ fullscreen = false }: { fullscreen?: boolean }) => {
   const view = usePopupStore((state) => state.view)
   const creatingGroup = usePopupStore((state) => state.creatingGroup)
   const { tabs, groups, loaded, refresh: refreshWindow } = useWindowData()
@@ -63,9 +62,9 @@ export const App = () => {
     <div
       className={cx(
         "flex flex-col overflow-hidden bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100",
-        inTab ? "mx-auto h-screen max-w-4xl border-x border-gray-200 dark:border-gray-800" : "h-[580px] w-[680px]"
+        fullscreen ? "h-screen w-full" : "h-[580px] w-[680px]"
       )}>
-      <Header inTab={inTab} />
+      <Header fullscreen={fullscreen} />
       <div className="flex min-h-0 flex-1">
         <Sidebar counts={{ groups: liveSuggestionCount + actions.length, tabs: tabsModel.flaggedTabCount }} />
         <main className="relative min-w-0 flex-1 overflow-y-auto">

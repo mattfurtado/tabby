@@ -1,4 +1,4 @@
-import { LayoutList, Layers, Loader2, Plus, RefreshCw, Settings, SquareArrowOutUpRight, Trash2, X } from "lucide-react"
+import { LayoutList, Layers, Loader2, Maximize2, Plus, RefreshCw, Settings, Trash2, X } from "lucide-react"
 import { useEffect, useState, type ComponentType } from "react"
 
 import logoUrl from "data-base64:~assets/logo.png"
@@ -13,9 +13,18 @@ import { Button, cx, IconButton } from "./ui"
 
 export const Logo = () => <img src={logoUrl} alt="" className="h-7 w-7" />
 
-export const Header = ({ inTab }: { inTab: boolean }) => {
-  const openInTab = async () => {
-    await chrome.tabs.create({ url: chrome.runtime.getURL("popup.html?view=tab") })
+const FULLSCREEN_URL = "tabs/fullscreen.html"
+
+export const Header = ({ fullscreen }: { fullscreen: boolean }) => {
+  const openFullscreen = async () => {
+    const url = chrome.runtime.getURL(FULLSCREEN_URL)
+    const [existing] = await chrome.tabs.query({ url })
+    if (existing?.id !== undefined) {
+      await chrome.tabs.update(existing.id, { active: true })
+      await chrome.windows.update(existing.windowId, { focused: true })
+    } else {
+      await chrome.tabs.create({ url })
+    }
     window.close()
   }
 
@@ -23,9 +32,9 @@ export const Header = ({ inTab }: { inTab: boolean }) => {
     <header className="flex items-center gap-2 border-b border-gray-200 bg-white px-4 py-2.5 dark:border-gray-800 dark:bg-gray-950">
       <Logo />
       <h1 className="flex-1 text-base font-semibold tracking-tight text-gray-900 dark:text-gray-100">Tabby</h1>
-      {!inTab && (
-        <IconButton onClick={() => void openInTab()} title="Open in a tab" aria-label="Open in a tab">
-          <SquareArrowOutUpRight className="h-4 w-4" />
+      {!fullscreen && (
+        <IconButton onClick={() => void openFullscreen()} title="Open in a tab" aria-label="Open in a tab">
+          <Maximize2 className="h-4 w-4" />
         </IconButton>
       )}
       <IconButton onClick={() => chrome.runtime.openOptionsPage()} title="Settings" aria-label="Settings">

@@ -61,7 +61,7 @@ Load the extension:
 
 1. Open `chrome://extensions` and turn on **Developer mode**.
 2. Click **Load unpacked** and select `build/chrome-mv3-dev`.
-3. Pin Tabby and click its icon. To use the popup as a full page, click the open-in-tab button or go to `chrome-extension://<id>/popup.html`.
+3. Pin Tabby and click its icon. To use Tabby as a full page, click the full-screen button in the popup header or go to `chrome-extension://<id>/tabs/fullscreen.html`.
 
 Production build and zip:
 
@@ -90,7 +90,7 @@ The service worker computes all suggestions and writes them to `chrome.storage.l
 Because the popup also works as a normal page, you can drive it with the [Chrome DevTools MCP server](https://github.com/ChromeDevTools/chrome-devtools-mcp):
 
 1. Start Chrome with Tabby loaded as an unpacked extension. Branded Chrome 137+ ignores `--load-extension`, so either load it through `chrome://extensions` in the MCP-controlled profile or use Chrome for Testing.
-2. Open `chrome-extension://<id>/popup.html` in a tab. You can find the id on `chrome://extensions`.
+2. Open `chrome-extension://<id>/tabs/fullscreen.html` in a tab. You can find the id on `chrome://extensions`.
 3. Use the MCP tools to take snapshots and screenshots, click, fill the search box and read console messages. Open some test tabs (several MDN pages, the same URL three times, a merged GitHub PR) so there's something to group and clean up.
 4. To see analysis logs and check the AI model, inspect the service worker from `chrome://extensions` (click **service worker**).
 
