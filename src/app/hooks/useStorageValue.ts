@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import { getItem, normalizeValue, type StorageKey, type StorageSchema } from "~src/core/storage"
+import { getItem, normalizeValue, type StorageKey, type StorageSchema } from "~core/storage"
 
 export const useStorageValue = <TKey extends StorageKey>(key: TKey) => {
   const [value, setValue] = useState<StorageSchema[TKey]>(() => normalizeValue(key, undefined))

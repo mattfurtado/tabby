@@ -1,9 +1,9 @@
 import { LayoutList, Layers, Loader2, Maximize2, Plus, RefreshCw, Settings, Trash2, X } from "lucide-react"
 import { useEffect, useState, type ComponentType } from "react"
 
-import logoUrl from "data-base64:~assets/logo.png"
+import logoUrl from "data-base64:../../../assets/logo.png"
 
-import { sendMessage } from "~src/core/messages"
+import { sendMessage } from "~core/messages"
 
 import type { TabRow } from "../rows"
 import { useStorageValue } from "../hooks/useStorageValue"

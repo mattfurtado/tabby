@@ -1,5 +1,5 @@
-import type { TabInfo } from "~src/core/types"
-import { hostnameOf } from "~src/core/url"
+import type { TabInfo } from "~core/types"
+import { hostnameOf } from "~core/url"
 
 import { activateTab, Favicon } from "./ui"
 

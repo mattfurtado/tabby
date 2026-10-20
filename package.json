@@ -6,9 +6,9 @@
   "author": "Tabby",
   "private": true,
   "scripts": {
-    "dev": "PLASMO_SRC_PATH=. plasmo dev",
-    "build": "PLASMO_SRC_PATH=. plasmo build",
-    "package": "PLASMO_SRC_PATH=. plasmo package",
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "package": "plasmo package",
     "typecheck": "tsc --noEmit"
   },
   "manifest": {

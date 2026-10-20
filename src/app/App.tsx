@@ -1,9 +1,9 @@
 import { useMemo } from "react"
 
-import { sendMessage } from "~src/core/messages"
-import { computeGroupActions } from "~src/core/group-actions"
-import type { TabInfo } from "~src/core/types"
-import { isHttpUrl } from "~src/core/url"
+import { sendMessage } from "~core/messages"
+import { computeGroupActions } from "~core/group-actions"
+import type { TabInfo } from "~core/types"
+import { isHttpUrl } from "~core/url"
 
 import { Footer, Header, Sidebar } from "./components/Layout"
 import { GroupsView } from "./components/GroupsView"

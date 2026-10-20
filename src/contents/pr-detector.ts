@@ -1,7 +1,7 @@
 import type { PlasmoCSConfig } from "plasmo"
 
-import type { PRState } from "~src/core/types"
-import { canonicalPRUrl } from "~src/core/url"
+import type { PRState } from "~core/types"
+import { canonicalPRUrl } from "~core/url"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://github.com/*/pull/*"],

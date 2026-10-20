@@ -1,8 +1,8 @@
-import { runAnalysis, updateBadge } from "~src/core/analysis"
-import type { Message, MessageResponse } from "~src/core/messages"
-import { CLEANUP_KEYS, getItem, getSettings, setItem, updateSettings } from "~src/core/storage"
-import type { AnalysisStatus, CleanupSuggestion, GroupSuggestion, Settings } from "~src/core/types"
-import { canonicalPRUrl } from "~src/core/url"
+import { runAnalysis, updateBadge } from "~core/analysis"
+import type { Message, MessageResponse } from "~core/messages"
+import { CLEANUP_KEYS, getItem, getSettings, setItem, updateSettings } from "~core/storage"
+import type { AnalysisStatus, CleanupSuggestion, GroupSuggestion, Settings } from "~core/types"
+import { canonicalPRUrl } from "~core/url"
 
 const ANALYSIS_DELAY = 1500
 const REMOVAL_BATCH_DELAY = 50

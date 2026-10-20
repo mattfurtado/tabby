@@ -1,5 +1,5 @@
-import type { CleanupSuggestion } from "~src/core/types"
-import { isHttpUrl, stripHash } from "~src/core/url"
+import type { CleanupSuggestion } from "~core/types"
+import { isHttpUrl, stripHash } from "~core/url"
 
 import type { LiveGroup, LiveTab } from "./hooks/useWindowData"
 

@@ -1,10 +1,10 @@
 import { Loader2, X } from "lucide-react"
 import { useMemo, useState } from "react"
 
-import { hashColor } from "~src/core/heuristics"
-import { sendMessage } from "~src/core/messages"
-import type { GroupColor } from "~src/core/types"
-import { hostnameOf } from "~src/core/url"
+import { hashColor } from "~core/heuristics"
+import { sendMessage } from "~core/messages"
+import type { GroupColor } from "~core/types"
+import { hostnameOf } from "~core/url"
 
 import type { LiveGroup, LiveTab } from "../hooks/useWindowData"
 import { filterBySearch } from "../search"

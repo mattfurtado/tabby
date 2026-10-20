@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react"
 
-import type { CleanupSuggestion } from "~src/core/types"
+import type { CleanupSuggestion } from "~core/types"
 
 import { BADGE_LABELS, BADGE_ORDER, buildRows, type TabRow } from "../rows"
 import { matchesSearch } from "../search"

@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import type { AIRunResult, AnalysisStatus } from "~src/core/types"
+import type { AIRunResult, AnalysisStatus } from "~core/types"
 
 import { cx } from "./ui"
 

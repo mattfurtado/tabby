@@ -1,8 +1,8 @@
 import { AlertTriangle, Layers, Search } from "lucide-react"
 import { useMemo } from "react"
 
-import type { AddToGroupAction, GroupAction, GroupSuggestion, MergeGroupsAction, TabInfo } from "~src/core/types"
-import { isHttpUrl } from "~src/core/url"
+import type { AddToGroupAction, GroupAction, GroupSuggestion, MergeGroupsAction, TabInfo } from "~core/types"
+import { isHttpUrl } from "~core/url"
 
 import type { LiveGroup, LiveTab } from "../hooks/useWindowData"
 import { filterBySearch, normalizeQuery } from "../search"

@@ -1,7 +1,7 @@
 import { X } from "lucide-react"
 
-import { sendMessage } from "~src/core/messages"
-import { displayUrl } from "~src/core/url"
+import { sendMessage } from "~core/messages"
+import { displayUrl } from "~core/url"
 
 import type { LiveGroup } from "../hooks/useWindowData"
 import type { TabRow } from "../rows"

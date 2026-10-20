@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 
-import type { CleanupSuggestion } from "~src/core/types"
+import type { CleanupSuggestion } from "~core/types"
 
 import { useStorageValue } from "./useStorageValue"
 

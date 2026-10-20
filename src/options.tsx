@@ -1,6 +1,6 @@
 import "./style.css"
 
-import { Options } from "~src/options/Options"
+import { Options } from "~app/Options"
 
 const OptionsPage = () => <Options />
 

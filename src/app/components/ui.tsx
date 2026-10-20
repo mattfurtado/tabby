@@ -2,7 +2,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react"
 import { Check, Globe } from "lucide-react"
 import { useState, type ButtonHTMLAttributes, type ReactNode } from "react"
 
-import { GROUP_COLORS, type GroupColor } from "~src/core/types"
+import { GROUP_COLORS, type GroupColor } from "~core/types"
 
 export const GROUP_COLOR_HEX: Record<GroupColor, string> = {
   grey: "#5f6368",

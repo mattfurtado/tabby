@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import type { GroupColor } from "~src/core/types"
+import type { GroupColor } from "~core/types"
 
 export type LiveTab = chrome.tabs.Tab & { id: number }
 

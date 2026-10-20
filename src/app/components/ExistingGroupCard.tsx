@@ -2,8 +2,8 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react"
 import { ChevronDown, ChevronRight, Combine, Plus, Trash2, Ungroup } from "lucide-react"
 import { useState } from "react"
 
-import { sendMessage } from "~src/core/messages"
-import type { AddToGroupAction, MergeGroupsAction } from "~src/core/types"
+import { sendMessage } from "~core/messages"
+import type { AddToGroupAction, MergeGroupsAction } from "~core/types"
 
 import type { LiveGroup } from "../hooks/useWindowData"
 import { usePopupStore } from "../store"

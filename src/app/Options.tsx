@@ -1,8 +1,8 @@
 import { CheckCircle2, Download, Loader2, Monitor, Moon, Sun, XCircle } from "lucide-react"
 import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from "react"
 
-import { downloadModel, modelAvailability } from "~src/core/ai"
-import { getItem, getSettings, normalizeSettings, setItem } from "~src/core/storage"
+import { downloadModel, modelAvailability } from "~core/ai"
+import { getItem, getSettings, normalizeSettings, setItem } from "~core/storage"
 import {
   DEFAULT_SETTINGS,
   MAX_CUSTOM_INSTRUCTIONS,
@@ -10,11 +10,11 @@ import {
   type CleanupChecks,
   type Settings,
   type StaleUnit
-} from "~src/core/types"
+} from "~core/types"
 
-import { Logo } from "../popup/components/Layout"
-import { cacheAppearance, cachedAppearance, useColorScheme } from "../popup/hooks/useColorScheme"
-import { Button, cx } from "../popup/components/ui"
+import { Logo } from "./components/Layout"
+import { cacheAppearance, cachedAppearance, useColorScheme } from "./hooks/useColorScheme"
+import { Button, cx } from "./components/ui"
 
 const Toggle = ({ checked, onChange, label }: { checked: boolean; onChange: (value: boolean) => void; label: string }) => (
   <button

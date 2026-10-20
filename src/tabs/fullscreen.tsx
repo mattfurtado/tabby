@@ -1,6 +1,6 @@
 import "../style.css"
 
-import { App } from "~src/popup/App"
+import { App } from "~app/App"
 
 const FullscreenPage = () => <App fullscreen />
 

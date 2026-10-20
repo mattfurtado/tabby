@@ -2,8 +2,8 @@ import { Menu, MenuButton, MenuHeading, MenuItem, MenuItems, MenuSection, MenuSe
 import { ChevronDown, ChevronRight, Combine, Loader2, Pencil } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { sendMessage } from "~src/core/messages"
-import type { GroupColor, GroupSuggestion, TabInfo } from "~src/core/types"
+import { sendMessage } from "~core/messages"
+import type { GroupColor, GroupSuggestion, TabInfo } from "~core/types"
 
 import type { LiveGroup } from "../hooks/useWindowData"
 import { usePopupStore } from "../store"

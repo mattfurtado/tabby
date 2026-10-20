@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react"
 
-import { getSettings } from "~src/core/storage"
-import { APPEARANCES, type Appearance, type Settings } from "~src/core/types"
+import { getSettings } from "~core/storage"
+import { APPEARANCES, type Appearance, type Settings } from "~core/types"
 
 const CACHE_KEY = "tabby:appearance"
 

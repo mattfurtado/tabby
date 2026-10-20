@@ -75,13 +75,17 @@ Typecheck with `npx tsc --noEmit`.
 ### Project layout
 
 ```
-background.ts            service worker: analysis, badge, message handlers
-popup.tsx / options.tsx  entry points
-contents/pr-detector.ts  keeps GitHub PR states fresh in storage
-src/core/                pure logic and storage (heuristics, AI, reconcile, cleanup checks)
-src/popup/               popup UI (App, Zustand store, hooks, components)
-src/options/             settings page
+src/background.ts            service worker: analysis, badge, message handlers
+src/popup.tsx                popup entry point
+src/options.tsx              settings page entry point
+src/tabs/fullscreen.tsx      full-page entry point
+src/contents/pr-detector.ts  keeps GitHub PR states fresh in storage
+src/core/                    pure logic and storage (heuristics, AI, reconcile, cleanup checks)
+src/app/                     UI for the popup, full page and settings (App, Options, Zustand store, hooks, components)
+assets/                      extension icons (Plasmo reads these from the project root)
 ```
+
+Plasmo picks up entry points by file name inside `src/` (`popup.tsx`, `options.tsx`, `background.ts`, `contents/`, `tabs/`) and generates the manifest from them. The `~` import alias points to `src/`.
 
 The service worker computes all suggestions and writes them to `chrome.storage.local`. The popup only subscribes to storage changes and reads live tab data. It never computes suggestions itself.
 
