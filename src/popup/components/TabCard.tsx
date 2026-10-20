@@ -21,7 +21,7 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
   const tabIds = row.tabs.map((tab) => tab.id)
   const copies = row.tabs.length
   const target = row.tabs.find((tab) => tab.active) ?? row.tabs[0]
-  const hasDetails = row.active || row.kinds.length > 0 || !!row.group || groups.length > 0
+  const hasDetails = !!row.group || groups.length > 0
   const url = displayUrl(row.url)
   const closeLabel = copies > 1 ? "Close tabs" : "Close tab"
 
@@ -59,6 +59,14 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
           </button>
           {url && url !== row.title && <div className="truncate text-xs text-gray-500 dark:text-gray-400">{url}</div>}
         </div>
+        {(row.active || row.kinds.length > 0) && (
+          <div className="flex shrink-0 items-center gap-1">
+            {row.active && <CurrentBadge />}
+            {row.kinds.map((kind) => (
+              <CleanupBadge key={kind} kind={kind} staleSince={row.staleSince} />
+            ))}
+          </div>
+        )}
         <button
           type="button"
           onClick={(event) => {
@@ -74,12 +82,8 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
       {hasDetails && (
         <div className="mt-2.5 flex items-center gap-1.5">
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
-            {row.active && <CurrentBadge />}
-            {row.kinds.map((kind) => (
-              <CleanupBadge key={kind} kind={kind} staleSince={row.staleSince} />
-            ))}
             {row.group && (
-              <span className="ml-1 flex min-w-0 items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              <span className="flex min-w-0 items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                 <ColorDot color={row.group.color} className="h-2 w-2" />
                 <span className="truncate">{row.group.title || "Untitled group"}</span>
               </span>
