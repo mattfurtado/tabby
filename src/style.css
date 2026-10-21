@@ -1,5 +1,10 @@
+@import "@fontsource-variable/google-sans/wght.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 html, body { margin: 0; }
+
+/* Chrome gives extension pages body { font-family: system-ui }, which would override the inherited font */
+body { @apply font-sans; }

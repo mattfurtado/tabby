@@ -1,3 +1,5 @@
+const defaultTheme = require("tailwindcss/defaultTheme")
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   mode: "jit",
@@ -5,6 +7,9 @@ module.exports = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Google Sans Variable", ...defaultTheme.fontFamily.sans]
+      },
       colors: {
         gray: {
           50: "#faf9f7",
