@@ -254,7 +254,7 @@ export const Options = () => {
       <div className="mx-auto max-w-2xl px-6 py-8">
         <header className="mb-6 flex items-center gap-3">
           <Logo />
-          <h1 className="text-xl font-semibold">Tabby settings</h1>
+          <h1 className="text-xl font-semibold">Tabby Settings</h1>
         </header>
 
         <div className="space-y-5">
