@@ -48,6 +48,37 @@ Tabby is a Chrome extension that suggests tab groups and flags tabs that are saf
 - **Toolbar badge.** The badge shows how many suggestions are waiting.
 - **Appearance.** Choose light, dark or system (follows your computer's setting) on the settings page.
 
+## Installation
+
+### From a GitHub release
+
+1. Download the `.zip` file from the [latest release](https://github.com/mattfurtado/tabby/releases/latest) and unzip it.
+2. Open `chrome://extensions` and turn on **Developer mode**.
+3. Click **Load unpacked** and select the unzipped folder.
+
+Chrome doesn't update extensions loaded this way. To upgrade, download the new release and load it again.
+
+### From the Chrome Web Store
+
+Open [Tabby on the Chrome Web Store](https://chromewebstore.google.com/detail/tabby/aeijnnlikijfdcphmidkikpebfpiedjc) and click **Add to Chrome**. Chrome keeps it up to date.
+
+### From source
+
+Requirements: Node 20+ and pnpm.
+
+1. Clone the repo, or download it from GitHub with **Code > Download ZIP** and unzip it.
+2. Install the dependencies and build:
+
+   ```sh
+   pnpm install
+   pnpm build
+   ```
+
+3. Open `chrome://extensions` and turn on **Developer mode**.
+4. Click **Load unpacked** and select the `build/chrome-mv3-prod` folder.
+
+After pulling new changes, run `pnpm build` again and click the reload button on Tabby's card in `chrome://extensions`.
+
 ## Development
 
 Requirements: Node 20+ and pnpm.
