@@ -7,6 +7,7 @@ import { isHttpUrl } from "~core/url"
 import type { LiveGroup, LiveTab } from "../hooks/useWindowData"
 import { filterBySearch, normalizeQuery } from "../search"
 import { usePopupStore } from "../store"
+import type { AddTabSection } from "./AddTabMenu"
 import { ExistingGroupCard } from "./ExistingGroupCard"
 import { SearchBox } from "./SearchBox"
 import { SuggestionCard } from "./SuggestionCard"
@@ -68,6 +69,33 @@ export const GroupsView = ({
         .filter((entry) => entry.tabs.length > 0),
     [suggestions, liveById]
   )
+
+  const ungroupedTabs = tabs.filter((tab) => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE).map(liveTabInfo)
+  const suggestedIds = new Set(suggestionEntries.flatMap((entry) => entry.tabs.map((tab) => tab.id)))
+
+  // Suggestions only hold ungrouped web tabs: offer the loose ones first, then tabs from other suggestions
+  const suggestionAddSections = (suggestionId: string): AddTabSection[] => [
+    {
+      key: "ungrouped",
+      label: "Ungrouped tabs",
+      tabs: ungroupedTabs.filter((tab) => isHttpUrl(tab.url) && !suggestedIds.has(tab.id))
+    },
+    ...suggestionEntries
+      .filter((entry) => entry.suggestion.id !== suggestionId)
+      .map((entry) => ({ key: entry.suggestion.id, label: entry.suggestion.name, color: entry.suggestion.color, tabs: entry.tabs }))
+  ]
+
+  const groupAddSections = (groupId: number): AddTabSection[] => [
+    { key: "ungrouped", label: "Ungrouped tabs", tabs: ungroupedTabs },
+    ...groups
+      .filter((group) => group.id !== groupId)
+      .map((group) => ({
+        key: String(group.id),
+        label: group.title || "Untitled group",
+        color: group.color,
+        tabs: group.tabs.map(liveTabInfo)
+      }))
+  ]
 
   const addActions = new Map(
     actions.filter((action): action is AddToGroupAction => action.type === "add-to-group").map((action) => [action.targetGroupId, action])
@@ -139,6 +167,7 @@ export const GroupsView = ({
                 visibleTabs={entry.visibleTabs}
                 existingGroups={groups}
                 otherSuggestions={suggestionEntries.filter((other) => other.suggestion.id !== entry.suggestion.id)}
+                addSections={suggestionAddSections(entry.suggestion.id)}
                 forceExpanded={searching}
               />
             ))}
@@ -155,6 +184,7 @@ export const GroupsView = ({
                 group={group}
                 visibleTabs={visibleTabs}
                 otherGroups={groups.filter((other) => other.id !== group.id)}
+                addSections={groupAddSections(group.id)}
                 addAction={addActions.get(group.id)}
                 mergeActions={mergeActions.filter((action) => action.targetGroupId === group.id)}
                 forceExpanded={searching}

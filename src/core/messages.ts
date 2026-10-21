@@ -4,6 +4,9 @@ export type Message =
   | { type: "REFRESH_SUGGESTIONS" }
   | { type: "APPLY_SUGGESTION"; tabIds: number[]; name: string; color: GroupColor; suggestionId?: string }
   | { type: "RENAME_SUGGESTION"; suggestionId: string; name: string; color?: GroupColor }
+  | { type: "REMOVE_FROM_SUGGESTION"; suggestionId: string; tabId: number }
+  | { type: "ADD_TO_SUGGESTION"; suggestionId: string; tabId: number }
+  | { type: "ADD_TO_GROUP"; groupId: number; tabIds: number[] }
   | { type: "CLOSE_TAB"; tabId: number; suggestionId?: string }
   | { type: "CLOSE_BULK"; items: { id: string; tabIds: number[] }[] }
   | { type: "DISMISS_SUGGESTION"; suggestionId: string }

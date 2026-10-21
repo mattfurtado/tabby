@@ -2,11 +2,13 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react"
 import { ChevronDown, ChevronRight, Combine, Plus, Trash2, Ungroup } from "lucide-react"
 import { useState } from "react"
 
+import { removedFromGroupId } from "~core/group-actions"
 import { sendMessage } from "~core/messages"
 import type { AddToGroupAction, MergeGroupsAction } from "~core/types"
 
 import type { LiveGroup } from "../hooks/useWindowData"
 import { usePopupStore } from "../store"
+import { AddTabMenu, type AddTabSection } from "./AddTabMenu"
 import { TabList } from "./TabList"
 import { Button, ColorDot, cx, MENU_ITEM_CLASS, MENU_ITEMS_CLASS } from "./ui"
 
@@ -16,6 +18,7 @@ interface ExistingGroupCardProps {
   otherGroups: LiveGroup[]
   addAction?: AddToGroupAction
   mergeActions: MergeGroupsAction[]
+  addSections: AddTabSection[]
   forceExpanded: boolean
 }
 
@@ -34,6 +37,7 @@ export const ExistingGroupCard = ({
   otherGroups,
   addAction,
   mergeActions,
+  addSections,
   forceExpanded
 }: ExistingGroupCardProps) => {
   const cardId = `group_${group.id}`
@@ -53,6 +57,15 @@ export const ExistingGroupCard = ({
     setConfirmDelete(false)
     await sendMessage({ type: "CLOSE_BULK", items: [{ id: cardId, tabIds }] })
   }
+
+  const removeTab = async (tabId: number) => {
+    // Record the removal first so the tab doesn't flash up as a suggestion to add back
+    await sendMessage({ type: "DISMISS_SUGGESTION", suggestionId: removedFromGroupId(group.id, tabId) })
+    await chrome.tabs.ungroup(tabId)
+  }
+
+  const skipSuggestedTab = (tabId: number) =>
+    sendMessage({ type: "DISMISS_SUGGESTION", suggestionId: removedFromGroupId(group.id, tabId) })
 
   const mergeInto = async (target: LiveGroup) => {
     if (!tabIds.length) return
@@ -134,7 +147,15 @@ export const ExistingGroupCard = ({
         )}
       </div>
 
-      {expanded && <TabList tabs={visibleTabs.map(toTabInfo)} />}
+      {expanded && (
+        <>
+          <TabList tabs={visibleTabs.map(toTabInfo)} onRemove={(tab) => void removeTab(tab.id)} />
+          <AddTabMenu
+            sections={addSections}
+            onAdd={(tab) => void sendMessage({ type: "ADD_TO_GROUP", groupId: group.id, tabIds: [tab.id] })}
+          />
+        </>
+      )}
 
       {addAction && (
         <div className="mt-3 rounded-md border border-dashed border-ginger-300 bg-ginger-50/60 p-2 dark:border-ginger-800 dark:bg-ginger-950/30">
@@ -150,7 +171,7 @@ export const ExistingGroupCard = ({
               Add to group
             </Button>
           </div>
-          <TabList tabs={addAction.tabs} />
+          <TabList tabs={addAction.tabs} removeLabel="Don't add" onRemove={(tab) => void skipSuggestedTab(tab.id)} />
         </div>
       )}
 

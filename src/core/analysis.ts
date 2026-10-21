@@ -8,7 +8,7 @@ import {
   staleSuggestions,
   zoomSuggestions
 } from "./cleanup"
-import { computeGroupActions, type GroupSnapshot } from "./group-actions"
+import { computeGroupActions, removedTabIds, type GroupSnapshot } from "./group-actions"
 import { heuristicSuggestions } from "./heuristics"
 import { reconcile } from "./reconcile"
 import { CLEANUP_KEYS, getItem, getSettings } from "./storage"
@@ -108,16 +108,19 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
   let heuristic: GroupSuggestion[] = []
   let ai: GroupSuggestion[] = []
   let aiRun: AIRunResult = { status: settings.useAI ? "skipped" : "off", groupCount: 0 }
-  if (ungrouped.length >= settings.minGroupSize) {
-    const freshHeuristic = heuristicSuggestions(ungrouped, settings).filter((item) => !dismissed.has(item.id))
+  // Tabs the user took out of a group (or chose not to add) aren't offered in new group suggestions either
+  const removed = removedTabIds(dismissed)
+  const suggestable = ungrouped.filter((tab) => !removed.has(tab.id))
+  if (suggestable.length >= settings.minGroupSize) {
+    const freshHeuristic = heuristicSuggestions(suggestable, settings).filter((item) => !dismissed.has(item.id))
     const previousHeuristic = await getItem("heuristic_suggestions")
-    heuristic = reconcile(previousHeuristic, freshHeuristic, ungrouped, { ...sizing, excludeIds: dismissed })
+    heuristic = reconcile(previousHeuristic, freshHeuristic, suggestable, { ...sizing, excludeIds: dismissed })
 
     if (settings.useAI) {
-      const result = await aiSuggestions(ungrouped, heuristic, settings)
+      const result = await aiSuggestions(suggestable, heuristic, settings)
       const freshAI = result.suggestions.filter((item) => !dismissed.has(item.id))
       const previousAI = await getItem("ai_suggestions")
-      ai = reconcile(previousAI, freshAI, ungrouped, { ...sizing, excludeIds: dismissed })
+      ai = reconcile(previousAI, freshAI, suggestable, { ...sizing, excludeIds: dismissed })
       aiRun = { ...result.run, groupCount: ai.length }
     }
   }

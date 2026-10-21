@@ -7,6 +7,7 @@ import type { GroupColor, GroupSuggestion, TabInfo } from "~core/types"
 
 import type { LiveGroup } from "../hooks/useWindowData"
 import { usePopupStore } from "../store"
+import { AddTabMenu, type AddTabSection } from "./AddTabMenu"
 import { TabList } from "./TabList"
 import { Button, ColorDot, ColorPicker, MENU_HEADING_CLASS, MENU_ITEM_CLASS, MENU_ITEMS_CLASS } from "./ui"
 
@@ -16,6 +17,7 @@ interface SuggestionCardProps {
   visibleTabs: TabInfo[]
   existingGroups: LiveGroup[]
   otherSuggestions: { suggestion: GroupSuggestion; tabs: TabInfo[] }[]
+  addSections: AddTabSection[]
   forceExpanded: boolean
 }
 
@@ -25,6 +27,7 @@ export const SuggestionCard = ({
   visibleTabs,
   existingGroups,
   otherSuggestions,
+  addSections,
   forceExpanded
 }: SuggestionCardProps) => {
   const expanded = usePopupStore((state) => state.expanded[suggestion.id]) || forceExpanded
@@ -146,7 +149,19 @@ export const SuggestionCard = ({
           </span>
         </div>
 
-        {expanded && <TabList tabs={visibleTabs} />}
+        {expanded && (
+          <>
+            <TabList
+              tabs={visibleTabs}
+              removeLabel="Remove from suggestion"
+              onRemove={(tab) => void sendMessage({ type: "REMOVE_FROM_SUGGESTION", suggestionId: suggestion.id, tabId: tab.id })}
+            />
+            <AddTabMenu
+              sections={addSections}
+              onAdd={(tab) => void run(() => sendMessage({ type: "ADD_TO_SUGGESTION", suggestionId: suggestion.id, tabId: tab.id }))}
+            />
+          </>
+        )}
 
         {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
 

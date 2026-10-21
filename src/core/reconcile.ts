@@ -7,6 +7,7 @@ export interface ReconcilableSuggestion {
   color: GroupColor
   tabIds: number[]
   tabs: TabInfo[]
+  excludedTabIds?: number[]
 }
 
 export interface ReconcileOptions {
@@ -35,8 +36,9 @@ export const reconcile = <TSuggestion extends ReconcilableSuggestion>(
 
   for (const suggestion of previous) {
     if (excluded.has(suggestion.id)) continue
+    const removed = new Set(suggestion.excludedTabIds)
     const tabs = suggestion.tabIds
-      .filter((id) => !assigned.has(id))
+      .filter((id) => !assigned.has(id) && !removed.has(id))
       .map((id) => tabsById.get(id))
       .filter((tab): tab is TabInfo => !!tab)
     if (tabs.length < options.minGroupSize) continue
@@ -69,8 +71,11 @@ export const reconcile = <TSuggestion extends ReconcilableSuggestion>(
     let remaining = unassigned
     if (bestIndex !== -1) {
       const target = kept[bestIndex]
-      const moving = remaining.slice(0, capacity(target))
-      remaining = remaining.slice(moving.length)
+      // Tabs the user removed from the target stay out of it and don't seed a new group from the same fresh suggestion
+      const removed = new Set(target.excludedTabIds)
+      const eligible = remaining.filter((tab) => !removed.has(tab.id))
+      const moving = eligible.slice(0, capacity(target))
+      remaining = eligible.slice(moving.length)
       moving.forEach((tab) => assigned.add(tab.id))
       kept[bestIndex] = withTabs(target, [...target.tabs, ...moving])
     }

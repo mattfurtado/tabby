@@ -36,7 +36,7 @@ Tabby is a Chrome extension that suggests tab groups and flags tabs that are saf
 - **Group suggestions.** Built-in rules recognize common services (Google Docs, Sheets, Slides, Forms, Drive, Gmail, Calendar and Meet, plus Stack Overflow, MDN, npm, Notion, Linear, Figma, Confluence, Jira, Slack, YouTube and Spotify) and GitHub orgs and repos, then suggest a named, colored group for each.
 - **On-device AI grouping (optional).** Chrome's built-in Gemini Nano groups tabs by topic and names the groups. You can add custom instructions. When the model isn't available, Tabby falls back to the rules.
 - **Stable suggestions.** Suggestions keep their name, color and order across refreshes. When new tabs fit an existing suggestion, they join it. Dismiss a suggestion to have it regrouped.
-- **Existing-group actions.** Tabby suggests adding matching ungrouped tabs to a group, and merging groups that cover the same thing. You can also ungroup, delete, merge and rename groups.
+- **Existing-group actions.** Tabby suggests adding matching ungrouped tabs to a group, and merging groups that cover the same thing. You can also ungroup, delete, merge and rename groups, and add or remove individual tabs in both groups and suggestions.
 - **Cleanup checks.** Each check has its own toggle:
   - GitHub pull requests that are merged or closed. The state is read live from the page and cached by a content script.
   - Duplicate tabs (the `#hash` is ignored)

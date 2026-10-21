@@ -31,6 +31,16 @@ export const dominantBucket = (tabs: TabInfo[]) => {
 export const addToGroupId = (groupId: number, tabIds: number[]) =>
   `add_${groupId}_${[...tabIds].sort((a, b) => a - b).join("_")}`
 
+export const removedFromGroupId = (groupId: number, tabId: number) => `removed_${groupId}_${tabId}`
+
+export const removedTabId = (id: string) => {
+  const match = /^removed_-?\d+_(\d+)$/.exec(id)
+  return match ? Number(match[1]) : null
+}
+
+export const removedTabIds = (dismissed: Iterable<string>) =>
+  new Set([...dismissed].map(removedTabId).filter((id): id is number => id !== null))
+
 export const mergeGroupsId = (sourceId: number, targetId: number) => `merge_${sourceId}_${targetId}`
 
 export const computeGroupActions = (
@@ -45,7 +55,10 @@ export const computeGroupActions = (
   const actions: GroupAction[] = []
   const claimed = new Set<number>()
   for (const { group, key } of dominant) {
-    const tabs = ungrouped.filter((tab) => !claimed.has(tab.id) && classifyUrl(tab.url)?.key === key)
+    const tabs = ungrouped.filter(
+      (tab) =>
+        !claimed.has(tab.id) && !dismissed.has(removedFromGroupId(group.id, tab.id)) && classifyUrl(tab.url)?.key === key
+    )
     if (!tabs.length) continue
     const tabIds = tabs.map((tab) => tab.id)
     const id = addToGroupId(group.id, tabIds)

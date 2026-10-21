@@ -1,4 +1,5 @@
-import { runAnalysis, updateBadge } from "~core/analysis"
+import { runAnalysis, toTabInfo, updateBadge } from "~core/analysis"
+import { removedTabId } from "~core/group-actions"
 import type { Message, MessageResponse } from "~core/messages"
 import { CLEANUP_KEYS, getItem, getSettings, setItem, updateSettings } from "~core/storage"
 import type { AnalysisStatus, CleanupSuggestion, GroupSuggestion, Settings } from "~core/types"
@@ -65,7 +66,18 @@ const removeCleanupEntries = async (predicate: (item: CleanupSuggestion) => bool
 const touchesTabs = (item: CleanupSuggestion, tabIds: Set<number>) =>
   tabIds.has(item.tabId) || (item.source === "pr" && item.tabIds.some((id) => tabIds.has(id)))
 
+// Removal records hold session-scoped tab ids, so drop them once the tab is gone or the browser restarts
+const forgetRemovals = async (shouldForget: (tabId: number) => boolean) => {
+  const { dismissedSuggestions } = await getSettings()
+  const next = dismissedSuggestions.filter((id) => {
+    const tabId = removedTabId(id)
+    return tabId === null || !shouldForget(tabId)
+  })
+  if (next.length !== dismissedSuggestions.length) await updateSettings({ dismissedSuggestions: next })
+}
+
 const pruneTabs = async (tabIds: Set<number>) => {
+  await forgetRemovals((tabId) => tabIds.has(tabId))
   const { minGroupSize } = await getSettings()
   await updateGroupSuggestions((list) => {
     let changed = false
@@ -127,6 +139,53 @@ const handlers: { [TType in Message["type"]]: (message: Extract<Message, { type:
       if (!list.some((item) => item.id === suggestionId)) return list
       return list.map((item) => (item.id === suggestionId ? { ...item, name: trimmed, color: color ?? item.color } : item))
     })
+    return { ok: true }
+  },
+  REMOVE_FROM_SUGGESTION: async ({ suggestionId, tabId }) => {
+    const { minGroupSize } = await getSettings()
+    let tooSmall = false
+    await updateGroupSuggestions((list) => {
+      if (!list.some((item) => item.id === suggestionId)) return list
+      return list.map((item) => {
+        if (item.id !== suggestionId) return item
+        const tabs = item.tabs.filter((tab) => tab.id !== tabId)
+        if (tabs.length < minGroupSize) tooSmall = true
+        return { ...item, tabs, tabIds: tabs.map((tab) => tab.id), excludedTabIds: [...new Set([...(item.excludedTabIds ?? []), tabId])] }
+      })
+    })
+    if (tooSmall) await dismissIds([suggestionId])
+    return { ok: true }
+  },
+  ADD_TO_SUGGESTION: async ({ suggestionId, tabId }) => {
+    const tab = await chrome.tabs.get(tabId).catch(() => null)
+    if (!tab) return { ok: false, error: "That tab is no longer open" }
+    const info = toTabInfo(tab)
+    await forgetRemovals((id) => id === tabId)
+    const { minGroupSize } = await getSettings()
+    await updateGroupSuggestions((list) => {
+      if (!list.some((item) => item.id === suggestionId)) return list
+      // A tab belongs to one suggestion at a time, so take it out of any other
+      return list.flatMap((item) => {
+        if (item.id === suggestionId) {
+          if (item.tabIds.includes(tabId)) return [item]
+          const tabs = [...item.tabs, info]
+          const excludedTabIds = item.excludedTabIds?.filter((id) => id !== tabId)
+          return [{ ...item, tabs, tabIds: tabs.map((entry) => entry.id), excludedTabIds }]
+        }
+        if (!item.tabIds.includes(tabId)) return [item]
+        const tabs = item.tabs.filter((entry) => entry.id !== tabId)
+        return tabs.length < minGroupSize ? [] : [{ ...item, tabs, tabIds: tabs.map((entry) => entry.id) }]
+      })
+    })
+    await updateBadge()
+    return { ok: true }
+  },
+  ADD_TO_GROUP: async ({ groupId, tabIds }) => {
+    const valid = await existingTabIds(tabIds)
+    if (!valid.length) return { ok: false, error: "That tab is no longer open" }
+    await chrome.tabs.group({ groupId, tabIds: valid as [number, ...number[]] })
+    const added = new Set(valid)
+    await forgetRemovals((id) => added.has(id))
     return { ok: true }
   },
   CLOSE_TAB: async ({ tabId }) => {
@@ -237,5 +296,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
 })
 
 chrome.runtime.onInstalled.addListener(scheduleAnalysis)
-chrome.runtime.onStartup.addListener(scheduleAnalysis)
+chrome.runtime.onStartup.addListener(() => {
+  void forgetRemovals(() => true)
+  scheduleAnalysis()
+})
 scheduleAnalysis()

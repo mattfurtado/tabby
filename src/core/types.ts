@@ -18,6 +18,7 @@ export interface GroupSuggestion {
   tabIds: number[]
   tabs: TabInfo[]
   source: SuggestionSource
+  excludedTabIds?: number[]
 }
 
 export type CleanupKind = "pr" | "duplicate" | "zoom" | "stale" | "newtab" | "search"
