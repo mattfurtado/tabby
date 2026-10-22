@@ -1,3 +1,4 @@
+import { cleanupTabIds } from "~core/counts"
 import type { CleanupSuggestion } from "~core/types"
 import { isHttpUrl, stripHash } from "~core/url"
 
@@ -36,14 +37,11 @@ const badgeKind = (suggestion: CleanupSuggestion): BadgeKind => {
   return suggestion.source
 }
 
-const suggestionTabIds = (suggestion: CleanupSuggestion) =>
-  suggestion.source === "pr" ? suggestion.tabIds : [suggestion.tabId]
-
 export const buildRows = (tabs: LiveTab[], groups: LiveGroup[], suggestions: CleanupSuggestion[]): TabRow[] => {
   const kindsByTab = new Map<number, Set<BadgeKind>>()
   const staleByTab = new Map<number, number>()
   for (const suggestion of suggestions) {
-    for (const tabId of suggestionTabIds(suggestion)) {
+    for (const tabId of cleanupTabIds(suggestion)) {
       const kinds = kindsByTab.get(tabId) ?? new Set<BadgeKind>()
       kinds.add(badgeKind(suggestion))
       kindsByTab.set(tabId, kinds)

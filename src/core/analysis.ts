@@ -9,10 +9,11 @@ import {
   zoomSuggestions
 } from "./cleanup"
 import { computeGroupActions, removedTabIds, type GroupSnapshot } from "./group-actions"
+import { countFlaggedTabs, countLiveGroupSuggestions } from "./counts"
 import { heuristicSuggestions } from "./heuristics"
 import { reconcile } from "./reconcile"
 import { CLEANUP_KEYS, getItem, getSettings } from "./storage"
-import type { AIRunResult, AnalysisStatus, GroupColor, GroupSuggestion, PRState, TabInfo } from "./types"
+import type { AIRunResult, AnalysisStatus, CleanupSuggestion, GroupColor, GroupSuggestion, PRState, TabInfo } from "./types"
 import { isHttpUrl } from "./url"
 
 export type Tab = chrome.tabs.Tab & { id: number }
@@ -76,16 +77,81 @@ const groupSnapshots = async (windowId: number, tabs: Tab[]): Promise<GroupSnaps
   }))
 }
 
+// Gray copies of the manifest icons, made once per service worker lifetime
+let grayIcons: Promise<Record<number, ImageData>> | null = null
+
+const loadGrayIcons = async () => {
+  const icons = chrome.runtime.getManifest().icons ?? {}
+  const entries = await Promise.all(
+    [16, 32].map(async (size) => {
+      const blob = await (await fetch(chrome.runtime.getURL(icons[size]))).blob()
+      const bitmap = await createImageBitmap(blob)
+      const context = new OffscreenCanvas(size, size).getContext("2d")!
+      context.drawImage(bitmap, 0, 0, size, size)
+      const image = context.getImageData(0, 0, size, size)
+      const data = image.data
+      for (let i = 0; i < data.length; i += 4) {
+        const luma = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]
+        data[i] = data[i + 1] = data[i + 2] = luma
+        data[i + 3] *= 0.75
+      }
+      return [size, image] as const
+    })
+  )
+  return Object.fromEntries(entries)
+}
+
+const setToolbarIcon = async (gray: boolean) => {
+  if (!gray) {
+    const icons = chrome.runtime.getManifest().icons ?? {}
+    // Relative paths would resolve against the service worker's folder
+    await chrome.action.setIcon({ path: { 16: `/${icons[16]}`, 32: `/${icons[32]}` } })
+    return
+  }
+  grayIcons ??= loadGrayIcons().catch((error) => {
+    grayIcons = null
+    throw error
+  })
+  await chrome.action.setIcon({ imageData: await grayIcons })
+}
+
+// Open popup or full-page views; the toolbar icon stays in color while any are showing
+let openViews = 0
+
+export const trackOpenView = (port: chrome.runtime.Port) => {
+  openViews += 1
+  void updateBadge()
+  port.onDisconnect.addListener(() => {
+    openViews -= 1
+    void updateBadge()
+  })
+}
+
 export const updateBadge = async () => {
   const keys = ["heuristic_suggestions", "ai_suggestions", "group_action_counts", ...CLEANUP_KEYS] as const
   const values = await chrome.storage.local.get([...keys])
   const ai = (values.ai_suggestions ?? []) as GroupSuggestion[]
   const heuristic = (values.heuristic_suggestions ?? []) as GroupSuggestion[]
   const counts = (values.group_action_counts ?? { add: 0, merge: 0 }) as { add: number; merge: number }
-  const cleanup = CLEANUP_KEYS.reduce((sum, key) => sum + ((values[key] as unknown[] | undefined)?.length ?? 0), 0)
-  const total = (ai.length ? ai.length : heuristic.length) + counts.add + counts.merge + cleanup
+  const cleanup = CLEANUP_KEYS.flatMap((key) => (values[key] ?? []) as CleanupSuggestion[])
+  const windowId = await targetWindowId()
+  const tabs = windowId === null ? [] : await chrome.tabs.query({ windowId })
+  const openIds = new Set(tabs.flatMap((tab) => (tab.id === undefined ? [] : [tab.id])))
+  const ungroupedIds = new Set(
+    tabs.flatMap((tab) => (tab.id !== undefined && tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE ? [tab.id] : []))
+  )
+  const total =
+    countLiveGroupSuggestions(ai.length ? ai : heuristic, ungroupedIds) +
+    counts.add +
+    counts.merge +
+    countFlaggedTabs(cleanup, openIds)
+  const { toolbarIndicator } = await getSettings()
   await chrome.action.setBadgeBackgroundColor({ color: BADGE_COLOR })
-  await chrome.action.setBadgeText({ text: total ? String(total) : "" })
+  await chrome.action.setBadgeText({ text: toolbarIndicator === "badge" && total ? String(total) : "" })
+  await chrome.action.setTitle({ title: total ? `Tabby: ${total} ${total === 1 ? "suggestion" : "suggestions"}` : "Tabby" })
+  await setToolbarIcon(toolbarIndicator === "color" && !total && !openViews).catch((error) =>
+    console.warn("Tabby: couldn't update the toolbar icon", error)
+  )
 }
 
 export const runAnalysis = async (): Promise<AnalysisStatus | null> => {

@@ -1,5 +1,8 @@
 import type { AnalysisStatus, GroupColor } from "./types"
 
+// The popup and full page hold a port with this name open while they're showing
+export const UI_PORT_NAME = "tabby-ui"
+
 export type Message =
   | { type: "REFRESH_SUGGESTIONS" }
   | { type: "APPLY_SUGGESTION"; tabIds: number[]; name: string; color: GroupColor; suggestionId?: string }

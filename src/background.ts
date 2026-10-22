@@ -1,6 +1,6 @@
-import { runAnalysis, toTabInfo, updateBadge } from "~core/analysis"
+import { runAnalysis, toTabInfo, trackOpenView, updateBadge } from "~core/analysis"
 import { removedTabId } from "~core/group-actions"
-import type { Message, MessageResponse } from "~core/messages"
+import { UI_PORT_NAME, type Message, type MessageResponse } from "~core/messages"
 import { CLEANUP_KEYS, getItem, getSettings, setItem, updateSettings } from "~core/storage"
 import type { AnalysisStatus, CleanupSuggestion, GroupSuggestion, Settings } from "~core/types"
 import { canonicalPRUrl } from "~core/url"
@@ -293,6 +293,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
   const after = (settingsChange.newValue ?? {}) as Partial<Settings>
   const changed = ANALYSIS_SETTINGS.some((key) => JSON.stringify(before[key]) !== JSON.stringify(after[key]))
   if (changed) scheduleAnalysis()
+  if (before.toolbarIndicator !== after.toolbarIndicator) void updateBadge()
+})
+
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === UI_PORT_NAME) trackOpenView(port)
 })
 
 chrome.runtime.onInstalled.addListener(scheduleAnalysis)

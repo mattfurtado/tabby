@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 
+import { countLiveGroupSuggestions } from "~core/counts"
 import { sendMessage } from "~core/messages"
 import { computeGroupActions } from "~core/group-actions"
 import type { TabInfo } from "~core/types"
@@ -13,6 +14,7 @@ import { TabsView } from "./components/TabsView"
 import { cx } from "./components/ui"
 import { useCleanupSuggestions } from "./hooks/useCleanupSuggestions"
 import { useAppearance, useColorScheme } from "./hooks/useColorScheme"
+import { useOpenViewPort } from "./hooks/useOpenViewPort"
 import { useStorageValue } from "./hooks/useStorageValue"
 import { useTabsModel } from "./hooks/useTabsModel"
 import { useWindowData, type LiveTab } from "./hooks/useWindowData"
@@ -31,6 +33,7 @@ export const App = ({ fullscreen = false }: { fullscreen?: boolean }) => {
   const { tabs, groups, loaded, refresh: refreshWindow } = useWindowData()
   const settings = useStorageValue("settings")
   useColorScheme(useAppearance())
+  useOpenViewPort()
   const heuristic = useStorageValue("heuristic_suggestions")
   const ai = useStorageValue("ai_suggestions")
   const cleanup = useCleanupSuggestions()
@@ -50,7 +53,7 @@ export const App = ({ fullscreen = false }: { fullscreen?: boolean }) => {
     () => new Set(tabs.filter((tab) => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE).map((tab) => tab.id)),
     [tabs]
   )
-  const liveSuggestionCount = suggestions.filter((item) => item.tabIds.some((id) => liveIds.has(id))).length
+  const liveSuggestionCount = countLiveGroupSuggestions(suggestions, liveIds)
 
   const refresh = async () => {
     const result = await sendMessage({ type: "REFRESH_SUGGESTIONS" })

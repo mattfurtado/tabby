@@ -1,4 +1,4 @@
-import { CheckCircle2, Download, Loader2, Monitor, Moon, Sun, XCircle } from "lucide-react"
+import { CheckCircle2, Download, EyeOff, Hash, Loader2, Monitor, Moon, Palette, Sun, XCircle } from "lucide-react"
 import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from "react"
 
 import { downloadModel, modelAvailability } from "~core/ai"
@@ -9,7 +9,8 @@ import {
   type Appearance,
   type CleanupChecks,
   type Settings,
-  type StaleUnit
+  type StaleUnit,
+  type ToolbarIndicator
 } from "~core/types"
 
 import { Logo } from "./components/Layout"
@@ -133,15 +134,25 @@ const ModelStatus = () => {
   )
 }
 
-const APPEARANCE_OPTIONS: { value: Appearance; label: string; icon: ComponentType<{ className?: string }> }[] = [
-  { value: "system", label: "System", icon: Monitor },
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon }
-]
+interface SegmentOption<T extends string> {
+  value: T
+  label: string
+  icon: ComponentType<{ className?: string }>
+}
 
-const AppearancePicker = ({ value, onChange }: { value: Appearance; onChange: (value: Appearance) => void }) => (
-  <div role="radiogroup" aria-label="Appearance" className="flex rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
-    {APPEARANCE_OPTIONS.map(({ value: option, label, icon: Icon }) => (
+const SegmentedPicker = <T extends string>({
+  label,
+  options,
+  value,
+  onChange
+}: {
+  label: string
+  options: SegmentOption<T>[]
+  value: T
+  onChange: (value: T) => void
+}) => (
+  <div role="radiogroup" aria-label={label} className="flex rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
+    {options.map(({ value: option, label: optionLabel, icon: Icon }) => (
       <button
         key={option}
         type="button"
@@ -155,11 +166,23 @@ const AppearancePicker = ({ value, onChange }: { value: Appearance; onChange: (v
             : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
         )}>
         <Icon className="h-3.5 w-3.5" />
-        {label}
+        {optionLabel}
       </button>
     ))}
   </div>
 )
+
+const APPEARANCE_OPTIONS: SegmentOption<Appearance>[] = [
+  { value: "system", label: "System", icon: Monitor },
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon }
+]
+
+const TOOLBAR_INDICATOR_OPTIONS: SegmentOption<ToolbarIndicator>[] = [
+  { value: "badge", label: "Count", icon: Hash },
+  { value: "color", label: "Color", icon: Palette },
+  { value: "none", label: "None", icon: EyeOff }
+]
 
 const CHECKS: { key: keyof CleanupChecks; title: string; description: string }[] = [
   { key: "pr", title: "Merged & closed PRs", description: "GitHub pull requests that have been merged or closed." },
@@ -262,7 +285,26 @@ export const Options = () => {
             <Row
               title="Theme"
               description="System follows your computer's light or dark setting."
-              control={<AppearancePicker value={draft.appearance} onChange={(appearance) => patch({ appearance })} />}
+              control={
+                <SegmentedPicker
+                  label="Theme"
+                  options={APPEARANCE_OPTIONS}
+                  value={draft.appearance}
+                  onChange={(appearance) => patch({ appearance })}
+                />
+              }
+            />
+            <Row
+              title="Toolbar icon"
+              description="How the icon shows waiting suggestions. Count adds a number badge. Color turns the icon gray when there's nothing to do. Hover the icon to see the count."
+              control={
+                <SegmentedPicker
+                  label="Toolbar icon"
+                  options={TOOLBAR_INDICATOR_OPTIONS}
+                  value={draft.toolbarIndicator}
+                  onChange={(toolbarIndicator) => patch({ toolbarIndicator })}
+                />
+              }
             />
           </Section>
 

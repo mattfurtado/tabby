@@ -45,7 +45,7 @@ Tabby is a Chrome extension that suggests tab groups and flags tabs that are saf
   - Google search result pages
   - Stale tabs that you haven't viewed for a configurable time (48 hours by default)
 - **Tabs view.** Every tab is listed in one place, with cleanup badges, search, filters, bulk Close and Group, and a Move menu. Duplicate tabs collapse into a single card.
-- **Toolbar badge.** The badge shows how many suggestions are waiting.
+- **Toolbar icon.** Shows when suggestions are waiting, as a count badge or by turning the icon from gray to color. You can also turn it off. Hover the icon to see the count.
 - **Appearance.** Choose light, dark or system (follows your computer's setting) on the settings page.
 
 ## Installation

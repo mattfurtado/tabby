@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react"
 
+import { countFlaggedTabs } from "~core/counts"
 import type { CleanupSuggestion } from "~core/types"
 
 import { BADGE_LABELS, BADGE_ORDER, buildRows, type TabRow } from "../rows"
@@ -27,6 +28,7 @@ export const useTabsModel = (tabs: LiveTab[], groups: LiveGroup[], cleanup: Clea
   const selected = usePopupStore((state) => state.selected)
 
   const rows = useMemo(() => buildRows(tabs, groups, cleanup), [tabs, groups, cleanup])
+  const openTabIds = useMemo(() => new Set(tabs.map((tab) => tab.id)), [tabs])
 
   const filterOptions = useMemo(() => {
     const options: FilterOption[] = [{ value: "all", label: `All tabs (${tabCount(rows)})` }]
@@ -66,7 +68,7 @@ export const useTabsModel = (tabs: LiveTab[], groups: LiveGroup[], cleanup: Clea
     selectedRows,
     filterOptions,
     activeFilter,
-    flaggedTabCount: tabCount(rows.filter((row) => row.kinds.length > 0))
+    flaggedTabCount: countFlaggedTabs(cleanup, openTabIds)
   }
 }
 

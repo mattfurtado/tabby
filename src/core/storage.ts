@@ -3,6 +3,8 @@ import {
   DEFAULT_SETTINGS,
   type AnalysisStatus,
   type Appearance,
+  TOOLBAR_INDICATORS,
+  type ToolbarIndicator,
   GROUP_COLORS,
   MAX_CUSTOM_INSTRUCTIONS,
   type DuplicateSuggestion,
@@ -81,6 +83,9 @@ export const normalizeSettings = (raw: unknown): Settings => {
 
   return {
     appearance: APPEARANCES.includes(input.appearance as Appearance) ? (input.appearance as Appearance) : base.appearance,
+    toolbarIndicator: TOOLBAR_INDICATORS.includes(input.toolbarIndicator as ToolbarIndicator)
+      ? (input.toolbarIndicator as ToolbarIndicator)
+      : base.toolbarIndicator,
     useAI: bool(input.useAI, base.useAI),
     customInstructions:
       typeof input.customInstructions === "string"

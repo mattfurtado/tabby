@@ -105,6 +105,9 @@ export type StaleUnit = "minutes" | "hours" | "days"
 export const APPEARANCES = ["system", "light", "dark"] as const
 export type Appearance = (typeof APPEARANCES)[number]
 
+export const TOOLBAR_INDICATORS = ["badge", "color", "none"] as const
+export type ToolbarIndicator = (typeof TOOLBAR_INDICATORS)[number]
+
 export interface CleanupChecks {
   pr: boolean
   duplicate: boolean
@@ -116,6 +119,7 @@ export interface CleanupChecks {
 
 export interface Settings {
   appearance: Appearance
+  toolbarIndicator: ToolbarIndicator
   useAI: boolean
   customInstructions: string
   minGroupSize: number
@@ -131,6 +135,7 @@ export const MAX_CUSTOM_INSTRUCTIONS = 500
 
 export const DEFAULT_SETTINGS: Settings = {
   appearance: "system",
+  toolbarIndicator: "color",
   useAI: false,
   customInstructions: "",
   minGroupSize: 2,
