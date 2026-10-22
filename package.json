@@ -1,7 +1,7 @@
 {
   "name": "tabby",
   "displayName": "Tabby",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Suggests tab groups and flags tabs that are safe to close, fully on-device.",
   "author": "Tabby",
   "private": true,
