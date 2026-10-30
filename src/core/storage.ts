@@ -10,6 +10,7 @@ import {
   MAX_GROUPING_RULES,
   type DuplicateSuggestion,
   type GroupActionCounts,
+  type GroupMatches,
   type GroupSuggestion,
   type NewTabSuggestion,
   type PRState,
@@ -27,6 +28,7 @@ export interface StorageSchema {
   ai_suggestions: GroupSuggestion[]
   // The grouping rules ai_suggestions were made with
   ai_rules: string
+  ai_group_matches: GroupMatches
   pr_suggestions: PRSuggestion[]
   duplicate_suggestions: DuplicateSuggestion[]
   zoom_suggestions: ZoomSuggestion[]
@@ -57,6 +59,7 @@ const FALLBACKS: { [TKey in StorageKey]: () => StorageSchema[TKey] } = {
   heuristic_suggestions: () => [],
   ai_suggestions: () => [],
   ai_rules: () => "",
+  ai_group_matches: () => ({}),
   pr_suggestions: () => [],
   duplicate_suggestions: () => [],
   zoom_suggestions: () => [],

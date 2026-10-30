@@ -101,6 +101,7 @@ const errorMessage = (error: unknown) => (error instanceof Error ? error.message
 export const aiSuggestions = async (
   tabs: TabInfo[],
   heuristics: GroupSuggestion[],
+  groupNames: string[],
   settings: Settings
 ): Promise<AISuggestionsResult> => {
   const empty = (run: Omit<AIRunResult, "groupCount">): AISuggestionsResult => ({ suggestions: [], run: { ...run, groupCount: 0 } })
@@ -140,6 +141,9 @@ export const aiSuggestions = async (
       "Groups found by simple rules, as a starting point (improve and rename them by topic):",
       starting,
       "",
+      ...(groupNames.length
+        ? ["Existing groups (for tabs that belong in one, use its exact name):", ...groupNames.map((name) => `- ${name}`), ""]
+        : []),
       'Reply as {"groups":[{"name":"...","color":"...","tabIndexes":[0,1]}]}'
     ].join("\n")
 

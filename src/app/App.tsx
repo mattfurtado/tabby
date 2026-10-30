@@ -36,6 +36,7 @@ export const App = ({ fullscreen = false }: { fullscreen?: boolean }) => {
   useOpenViewPort()
   const heuristic = useStorageValue("heuristic_suggestions")
   const ai = useStorageValue("ai_suggestions")
+  const groupMatches = useStorageValue("ai_group_matches")
   const cleanup = useCleanupSuggestions()
   const analysisStatus = useStorageValue("analysis_status")
   const tabsModel = useTabsModel(tabs, groups, cleanup)
@@ -46,8 +47,8 @@ export const App = ({ fullscreen = false }: { fullscreen?: boolean }) => {
       .filter((tab) => isHttpUrl(tab.url) && tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE)
       .map(toInfo)
     const snapshots = groups.map((group) => ({ ...group, tabs: group.tabs.map(toInfo) }))
-    return computeGroupActions(snapshots, ungrouped, new Set(settings.dismissedSuggestions))
-  }, [tabs, groups, settings.dismissedSuggestions])
+    return computeGroupActions(snapshots, ungrouped, new Set(settings.dismissedSuggestions), groupMatches)
+  }, [tabs, groups, settings.dismissedSuggestions, groupMatches])
 
   const liveIds = useMemo(
     () => new Set(tabs.filter((tab) => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE).map((tab) => tab.id)),

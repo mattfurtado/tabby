@@ -79,6 +79,9 @@ export interface MergeGroupsAction {
 
 export type GroupAction = AddToGroupAction | MergeGroupsAction
 
+// Tabs the AI placed in an existing group, by group id
+export type GroupMatches = Record<number, number[]>
+
 export interface GroupActionCounts {
   add: number
   merge: number
