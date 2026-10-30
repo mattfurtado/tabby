@@ -277,7 +277,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 const ANALYSIS_SETTINGS: (keyof Settings)[] = [
   "staleThreshold",
   "cleanupChecks",
-  "customInstructions",
+  "groupingRules",
   "useAI",
   "minGroupSize",
   "maxGroupSize",

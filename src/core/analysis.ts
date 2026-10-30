@@ -12,7 +12,7 @@ import { computeGroupActions, removedTabIds, type GroupSnapshot } from "./group-
 import { countFlaggedTabs, countLiveGroupSuggestions } from "./counts"
 import { heuristicSuggestions } from "./heuristics"
 import { reconcile } from "./reconcile"
-import { CLEANUP_KEYS, getItem, getSettings } from "./storage"
+import { activeGroupingRules, CLEANUP_KEYS, getItem, getSettings } from "./storage"
 import type { AIRunResult, AnalysisStatus, CleanupSuggestion, GroupColor, GroupSuggestion, PRState, TabInfo } from "./types"
 import { isHttpUrl } from "./url"
 
@@ -166,6 +166,7 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
   const httpTabs = allTabs.filter((tab) => isHttpUrl(tab.url))
   const ungrouped = httpTabs.filter((tab) => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE).map(toTabInfo)
   const dismissed = new Set(settings.dismissedSuggestions)
+  const rules = activeGroupingRules(settings)
   const sizing = { minGroupSize: settings.minGroupSize, maxGroupSize: settings.maxGroupSize, maxGroups: settings.maxGroups }
 
   const previousIds = new Set(
@@ -185,7 +186,8 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
     if (settings.useAI) {
       const result = await aiSuggestions(suggestable, heuristic, settings)
       const freshAI = result.suggestions.filter((item) => !dismissed.has(item.id))
-      const previousAI = await getItem("ai_suggestions")
+      // Suggestions made with other rules would hold their tabs, so start over when the rules change
+      const previousAI = (await getItem("ai_rules")) === rules ? await getItem("ai_suggestions") : []
       ai = reconcile(previousAI, freshAI, suggestable, { ...sizing, excludeIds: dismissed })
       aiRun = { ...result.run, groupCount: ai.length }
     }
@@ -222,6 +224,7 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
     analysis_status: status,
     heuristic_suggestions: heuristic,
     ai_suggestions: ai,
+    ai_rules: rules,
     pr_suggestions: pr,
     duplicate_suggestions: duplicate,
     zoom_suggestions: zoom,

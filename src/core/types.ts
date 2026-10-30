@@ -121,7 +121,8 @@ export interface Settings {
   appearance: Appearance
   toolbarIndicator: ToolbarIndicator
   useAI: boolean
-  customInstructions: string
+  // null means DEFAULT_GROUPING_RULES, so changes to the defaults reach anyone who hasn't edited them
+  groupingRules: string | null
   minGroupSize: number
   maxGroupSize: number | null
   maxGroups: number | null
@@ -131,13 +132,18 @@ export interface Settings {
   dismissedPRUrls: string[]
 }
 
-export const MAX_CUSTOM_INSTRUCTIONS = 500
+export const MAX_GROUPING_RULES = 1000
+
+export const DEFAULT_GROUPING_RULES = [
+  "Group tabs by the topic, project or task they relate to, not by website.",
+  'Name each group after its topic, never with a generic service name like "GitHub" or "Google Docs".'
+].join("\n")
 
 export const DEFAULT_SETTINGS: Settings = {
   appearance: "system",
   toolbarIndicator: "color",
   useAI: false,
-  customInstructions: "",
+  groupingRules: null,
   minGroupSize: 2,
   maxGroupSize: null,
   maxGroups: null,

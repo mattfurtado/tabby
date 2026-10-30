@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState, type ComponentType, type ReactNode } 
 import { downloadModel, modelAvailability } from "~core/ai"
 import { getItem, getSettings, normalizeSettings, setItem } from "~core/storage"
 import {
+  DEFAULT_GROUPING_RULES,
   DEFAULT_SETTINGS,
-  MAX_CUSTOM_INSTRUCTIONS,
+  MAX_GROUPING_RULES,
   type Appearance,
   type CleanupChecks,
   type Settings,
@@ -262,6 +263,7 @@ export const Options = () => {
     void chrome.runtime.sendMessage({ type: "REFRESH_SUGGESTIONS" }).catch(() => undefined)
   }
 
+  const groupingRules = draft.groupingRules ?? DEFAULT_GROUPING_RULES
   const minInvalid = draft.minGroupSize < 2
   const maxInvalid = draft.maxGroupSize !== null && draft.maxGroupSize < draft.minGroupSize
   const staleInvalid = draft.staleThreshold.value < 1
@@ -321,23 +323,31 @@ export const Options = () => {
                   <ModelStatus />
                 </div>
                 <div>
-                  <label htmlFor="custom-instructions" className="text-sm text-gray-800 dark:text-gray-200">
-                    Custom instructions
+                  <label htmlFor="grouping-rules" className="text-sm text-gray-800 dark:text-gray-200">
+                    Grouping rules
                   </label>
                   <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                    Extra guidance for the model, like “Keep work and personal tabs separate” or “Name groups after
-                    Jira tickets”.
+                    What the model follows when it groups tabs. Edit these or add your own, like “Keep work and
+                    personal tabs separate”. Short, simple rules work best.
                   </p>
                   <textarea
-                    id="custom-instructions"
-                    rows={4}
-                    maxLength={MAX_CUSTOM_INSTRUCTIONS}
-                    value={draft.customInstructions}
-                    onChange={(event) => patch({ customInstructions: event.target.value.slice(0, MAX_CUSTOM_INSTRUCTIONS) })}
+                    id="grouping-rules"
+                    rows={7}
+                    maxLength={MAX_GROUPING_RULES}
+                    value={groupingRules}
+                    onChange={(event) => {
+                      const text = event.target.value.slice(0, MAX_GROUPING_RULES)
+                      patch({ groupingRules: text === DEFAULT_GROUPING_RULES ? null : text })
+                    }}
                     className={cx(FIELD, "mt-2 w-full resize-y px-3 py-2")}
                   />
-                  <div className="text-right text-xs text-gray-500">
-                    {draft.customInstructions.length}/{MAX_CUSTOM_INSTRUCTIONS}
+                  <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+                    <Button variant="ghost" disabled={draft.groupingRules === null} onClick={() => patch({ groupingRules: null })}>
+                      Reset to default
+                    </Button>
+                    <span>
+                      {groupingRules.length}/{MAX_GROUPING_RULES}
+                    </span>
                   </div>
                 </div>
               </>
