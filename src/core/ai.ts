@@ -1,7 +1,7 @@
-import { isGroupColor } from "./storage"
+import { activeGroupingRules, isGroupColor } from "./storage"
 import { hashColor, makeSuggestion } from "./heuristics"
 import type { AIRunResult, GroupSuggestion, Settings, TabInfo } from "./types"
-import { GROUP_COLORS, MAX_CUSTOM_INSTRUCTIONS } from "./types"
+import { GROUP_COLORS } from "./types"
 import { hostnameOf } from "./url"
 
 const LANGUAGE_OPTIONS: Pick<LanguageModelCreateOptions, "expectedInputs" | "expectedOutputs"> = {
@@ -31,15 +31,15 @@ export const downloadModel = async (onProgress: (fraction: number) => void) => {
   session.destroy()
 }
 
-const GROUPING_SYSTEM_PROMPT = [
-  "You organize browser tabs into tab groups.",
-  "Group tabs by the topic, project or task they relate to, not by website.",
-  "Name each group after its topic, never with a generic service name like \"GitHub\" or \"Google Docs\".",
+const FORMAT_RULES = [
   "Group names must be under 30 characters.",
   "Never put the same tab in more than one group.",
   `Colors must be one of: ${GROUP_COLORS.join(", ")}.`,
   "Respond with JSON only, no prose and no code fences."
-].join("\n")
+]
+
+const systemPrompt = (rules: string) =>
+  ["You organize browser tabs into tab groups.", ...(rules ? [rules] : []), ...FORMAT_RULES].join("\n")
 
 const GROUPS_SCHEMA = {
   type: "object",
@@ -58,12 +58,6 @@ const GROUPS_SCHEMA = {
     }
   },
   required: ["groups"]
-}
-
-const withInstructions = (base: string, custom: string) => {
-  const trimmed = custom.trim().slice(0, MAX_CUSTOM_INSTRUCTIONS)
-  if (!trimmed) return base
-  return `${base}\n\nAdditional instructions from the user:\n${trimmed}`
 }
 
 const tabLine = (tab: TabInfo, index: number) => `[${index}] "${tab.title.replace(/"/g, "'")}" (${hostnameOf(tab.url)})`
@@ -107,6 +101,7 @@ const errorMessage = (error: unknown) => (error instanceof Error ? error.message
 export const aiSuggestions = async (
   tabs: TabInfo[],
   heuristics: GroupSuggestion[],
+  groupNames: string[],
   settings: Settings
 ): Promise<AISuggestionsResult> => {
   const empty = (run: Omit<AIRunResult, "groupCount">): AISuggestionsResult => ({ suggestions: [], run: { ...run, groupCount: 0 } })
@@ -120,7 +115,7 @@ export const aiSuggestions = async (
   try {
     session = await model.create({
       ...LANGUAGE_OPTIONS,
-      initialPrompts: [{ role: "system", content: withInstructions(GROUPING_SYSTEM_PROMPT, settings.customInstructions) }]
+      initialPrompts: [{ role: "system", content: systemPrompt(activeGroupingRules(settings)) }]
     })
 
     const indexById = new Map(tabs.map((tab, index) => [tab.id, index]))
@@ -146,6 +141,9 @@ export const aiSuggestions = async (
       "Groups found by simple rules, as a starting point (improve and rename them by topic):",
       starting,
       "",
+      ...(groupNames.length
+        ? ["Existing groups (for tabs that belong in one, use its exact name):", ...groupNames.map((name) => `- ${name}`), ""]
+        : []),
       'Reply as {"groups":[{"name":"...","color":"...","tabIndexes":[0,1]}]}'
     ].join("\n")
 

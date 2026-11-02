@@ -8,11 +8,18 @@ import {
   staleSuggestions,
   zoomSuggestions
 } from "./cleanup"
-import { computeGroupActions, removedTabIds, type GroupSnapshot } from "./group-actions"
+import {
+  claimedTabIds,
+  computeGroupActions,
+  liveGroupMatches,
+  removedTabIds,
+  splitGroupMatches,
+  type GroupSnapshot
+} from "./group-actions"
 import { countFlaggedTabs, countLiveGroupSuggestions } from "./counts"
 import { heuristicSuggestions } from "./heuristics"
 import { reconcile } from "./reconcile"
-import { CLEANUP_KEYS, getItem, getSettings } from "./storage"
+import { activeGroupingRules, CLEANUP_KEYS, getItem, getSettings } from "./storage"
 import type { AIRunResult, AnalysisStatus, CleanupSuggestion, GroupColor, GroupSuggestion, PRState, TabInfo } from "./types"
 import { isHttpUrl } from "./url"
 
@@ -166,6 +173,7 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
   const httpTabs = allTabs.filter((tab) => isHttpUrl(tab.url))
   const ungrouped = httpTabs.filter((tab) => tab.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE).map(toTabInfo)
   const dismissed = new Set(settings.dismissedSuggestions)
+  const rules = activeGroupingRules(settings)
   const sizing = { minGroupSize: settings.minGroupSize, maxGroupSize: settings.maxGroupSize, maxGroups: settings.maxGroups }
 
   const previousIds = new Set(
@@ -177,16 +185,30 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
   // Tabs the user took out of a group (or chose not to add) aren't offered in new group suggestions either
   const removed = removedTabIds(dismissed)
   const suggestable = ungrouped.filter((tab) => !removed.has(tab.id))
+  const groups = await groupSnapshots(windowId, allTabs)
+  // Suggestions made with other rules would hold their tabs, so start over when the rules change
+  const sameRules = (await getItem("ai_rules")) === rules
+  let matches = settings.useAI && sameRules ? liveGroupMatches(await getItem("ai_group_matches"), groups, ungrouped) : {}
+  // Tabs suggested for an existing group aren't offered in new group suggestions too
+  const claimed = claimedTabIds(computeGroupActions(groups, ungrouped, dismissed, matches))
+  const unclaimed = suggestable.filter((tab) => !claimed.has(tab.id))
   if (suggestable.length >= settings.minGroupSize) {
-    const freshHeuristic = heuristicSuggestions(suggestable, settings).filter((item) => !dismissed.has(item.id))
+    const freshHeuristic = heuristicSuggestions(unclaimed, settings).filter((item) => !dismissed.has(item.id))
     const previousHeuristic = await getItem("heuristic_suggestions")
-    heuristic = reconcile(previousHeuristic, freshHeuristic, suggestable, { ...sizing, excludeIds: dismissed })
+    heuristic = reconcile(previousHeuristic, freshHeuristic, unclaimed, { ...sizing, excludeIds: dismissed })
 
     if (settings.useAI) {
-      const result = await aiSuggestions(suggestable, heuristic, settings)
+      // The model sees claimed tabs too, so it can place other tabs alongside them
+      const groupNames = [...new Set(groups.map((group) => group.title.trim()).filter(Boolean))]
+      const result = await aiSuggestions(suggestable, heuristic, groupNames, settings)
       const freshAI = result.suggestions.filter((item) => !dismissed.has(item.id))
-      const previousAI = await getItem("ai_suggestions")
-      ai = reconcile(previousAI, freshAI, suggestable, { ...sizing, excludeIds: dismissed })
+      const split = splitGroupMatches(freshAI, groups, matches)
+      matches = split.matches
+      const matched = new Set(Object.values(matches).flat())
+      const available = unclaimed.filter((tab) => !matched.has(tab.id))
+      heuristic = reconcile(heuristic, [], available, { ...sizing, excludeIds: dismissed })
+      const previousAI = sameRules ? await getItem("ai_suggestions") : []
+      ai = reconcile(previousAI, split.rest, available, { ...sizing, excludeIds: dismissed })
       aiRun = { ...result.run, groupCount: ai.length }
     }
   }
@@ -207,7 +229,7 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
     ? staleSuggestions(allTabs, settings.staleThreshold, flagged, await getItem("dismissed_stale"))
     : []
 
-  const groupActions = computeGroupActions(await groupSnapshots(windowId, allTabs), ungrouped, dismissed)
+  const groupActions = computeGroupActions(groups, ungrouped, dismissed, matches)
 
   const shown = ai.length ? ai : heuristic
   const status: AnalysisStatus = {
@@ -222,6 +244,8 @@ export const runAnalysis = async (): Promise<AnalysisStatus | null> => {
     analysis_status: status,
     heuristic_suggestions: heuristic,
     ai_suggestions: ai,
+    ai_rules: rules,
+    ai_group_matches: matches,
     pr_suggestions: pr,
     duplicate_suggestions: duplicate,
     zoom_suggestions: zoom,

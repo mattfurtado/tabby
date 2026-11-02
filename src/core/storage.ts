@@ -6,9 +6,11 @@ import {
   TOOLBAR_INDICATORS,
   type ToolbarIndicator,
   GROUP_COLORS,
-  MAX_CUSTOM_INSTRUCTIONS,
+  DEFAULT_GROUPING_RULES,
+  MAX_GROUPING_RULES,
   type DuplicateSuggestion,
   type GroupActionCounts,
+  type GroupMatches,
   type GroupSuggestion,
   type NewTabSuggestion,
   type PRState,
@@ -24,6 +26,9 @@ export interface StorageSchema {
   settings: Settings
   heuristic_suggestions: GroupSuggestion[]
   ai_suggestions: GroupSuggestion[]
+  // The grouping rules ai_suggestions were made with
+  ai_rules: string
+  ai_group_matches: GroupMatches
   pr_suggestions: PRSuggestion[]
   duplicate_suggestions: DuplicateSuggestion[]
   zoom_suggestions: ZoomSuggestion[]
@@ -53,6 +58,8 @@ const FALLBACKS: { [TKey in StorageKey]: () => StorageSchema[TKey] } = {
   settings: () => structuredClone(DEFAULT_SETTINGS),
   heuristic_suggestions: () => [],
   ai_suggestions: () => [],
+  ai_rules: () => "",
+  ai_group_matches: () => ({}),
   pr_suggestions: () => [],
   duplicate_suggestions: () => [],
   zoom_suggestions: () => [],
@@ -72,6 +79,20 @@ const positiveIntOrNull = (value: unknown): number | null => {
 
 const STALE_UNITS: StaleUnit[] = ["minutes", "hours", "days"]
 
+const normalizeGroupingRules = (input: { groupingRules?: unknown; customInstructions?: unknown }) => {
+  // Custom instructions used to be added after the default rules
+  const legacy = typeof input.customInstructions === "string" ? input.customInstructions.trim() : ""
+  const rules =
+    typeof input.groupingRules === "string"
+      ? input.groupingRules
+      : input.groupingRules === undefined && legacy
+        ? `${DEFAULT_GROUPING_RULES}\n${legacy}`
+        : null
+  if (rules === null) return null
+  const limited = rules.slice(0, MAX_GROUPING_RULES)
+  return limited.trim() === DEFAULT_GROUPING_RULES ? null : limited
+}
+
 export const normalizeSettings = (raw: unknown): Settings => {
   const input = (raw && typeof raw === "object" ? raw : {}) as Partial<Settings>
   const base = DEFAULT_SETTINGS
@@ -87,10 +108,7 @@ export const normalizeSettings = (raw: unknown): Settings => {
       ? (input.toolbarIndicator as ToolbarIndicator)
       : base.toolbarIndicator,
     useAI: bool(input.useAI, base.useAI),
-    customInstructions:
-      typeof input.customInstructions === "string"
-        ? input.customInstructions.slice(0, MAX_CUSTOM_INSTRUCTIONS)
-        : base.customInstructions,
+    groupingRules: normalizeGroupingRules(input),
     minGroupSize: Math.max(2, positiveIntOrNull(input.minGroupSize) ?? base.minGroupSize),
     maxGroupSize: positiveIntOrNull(input.maxGroupSize),
     maxGroups: positiveIntOrNull(input.maxGroups),
@@ -112,6 +130,9 @@ export const normalizeSettings = (raw: unknown): Settings => {
     dismissedPRUrls: stringList(input.dismissedPRUrls)
   }
 }
+
+export const activeGroupingRules = (settings: Pick<Settings, "groupingRules">) =>
+  (settings.groupingRules ?? DEFAULT_GROUPING_RULES).trim()
 
 export const isGroupColor = (value: unknown): value is (typeof GROUP_COLORS)[number] =>
   typeof value === "string" && (GROUP_COLORS as readonly string[]).includes(value)

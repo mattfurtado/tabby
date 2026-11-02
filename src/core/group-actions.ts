@@ -1,5 +1,5 @@
 import { classifyUrl } from "./heuristics"
-import type { AddToGroupAction, GroupAction, GroupColor, MergeGroupsAction, TabInfo } from "./types"
+import type { AddToGroupAction, GroupAction, GroupColor, GroupMatches, GroupSuggestion, MergeGroupsAction, TabInfo } from "./types"
 
 export interface GroupSnapshot {
   id: number
@@ -43,21 +43,56 @@ export const removedTabIds = (dismissed: Iterable<string>) =>
 
 export const mergeGroupsId = (sourceId: number, targetId: number) => `merge_${sourceId}_${targetId}`
 
+// AI names are cut to 30 characters, so longer group titles only match on that much
+const groupNameKey = (name: string) => name.trim().slice(0, 30).toLowerCase()
+
+export const liveGroupMatches = (matches: GroupMatches, groups: GroupSnapshot[], ungrouped: TabInfo[]) => {
+  const open = new Set(ungrouped.map((tab) => tab.id))
+  const live: GroupMatches = {}
+  for (const group of groups) {
+    const tabIds = (matches[group.id] ?? []).filter((id) => open.has(id))
+    if (tabIds.length) live[group.id] = tabIds
+  }
+  return live
+}
+
+// Suggestions named after an existing group become tabs to add to it
+export const splitGroupMatches = (suggestions: GroupSuggestion[], groups: GroupSnapshot[], matches: GroupMatches) => {
+  const groupIds = new Map(groups.filter((group) => group.title.trim()).map((group) => [groupNameKey(group.title), group.id]))
+  const merged = { ...matches }
+  const rest: GroupSuggestion[] = []
+  for (const suggestion of suggestions) {
+    const groupId = groupIds.get(groupNameKey(suggestion.name))
+    if (groupId === undefined) rest.push(suggestion)
+    else merged[groupId] = [...new Set([...(merged[groupId] ?? []), ...suggestion.tabIds])]
+  }
+  return { matches: merged, rest }
+}
+
+export const claimedTabIds = (actions: GroupAction[]) =>
+  new Set(actions.flatMap((action) => (action.type === "add-to-group" ? action.tabIds : [])))
+
 export const computeGroupActions = (
   groups: GroupSnapshot[],
   ungrouped: TabInfo[],
-  dismissed: Set<string> = new Set()
+  dismissed: Set<string> = new Set(),
+  matches: GroupMatches = {}
 ): GroupAction[] => {
   const dominant = groups
     .map((group) => ({ group, key: dominantBucket(group.tabs) }))
     .filter((entry): entry is { group: GroupSnapshot; key: string } => !!entry.key)
+  const dominantKeys = new Map(dominant.map(({ group, key }) => [group.id, key]))
 
   const actions: GroupAction[] = []
   const claimed = new Set<number>()
-  for (const { group, key } of dominant) {
+  for (const group of groups) {
+    const key = dominantKeys.get(group.id)
+    const matched = new Set(matches[group.id])
     const tabs = ungrouped.filter(
       (tab) =>
-        !claimed.has(tab.id) && !dismissed.has(removedFromGroupId(group.id, tab.id)) && classifyUrl(tab.url)?.key === key
+        !claimed.has(tab.id) &&
+        !dismissed.has(removedFromGroupId(group.id, tab.id)) &&
+        (matched.has(tab.id) || (!!key && classifyUrl(tab.url)?.key === key))
     )
     if (!tabs.length) continue
     const tabIds = tabs.map((tab) => tab.id)
