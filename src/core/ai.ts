@@ -115,6 +115,9 @@ export const aiSuggestions = async (
   try {
     session = await model.create({
       ...LANGUAGE_OPTIONS,
+      // Default sampling made grouping quality swing between runs. Chrome needs these two set together.
+      temperature: 0,
+      topK: 1,
       initialPrompts: [{ role: "system", content: systemPrompt(activeGroupingRules(settings)) }]
     })
 
