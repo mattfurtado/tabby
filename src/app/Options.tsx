@@ -1,6 +1,9 @@
 import { CheckCircle2, Download, EyeOff, Hash, Loader2, Monitor, Moon, Palette, Sun, XCircle } from "lucide-react"
 import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from "react"
 
+import themeDarkUrl from "data-base64:../../assets/theme-dark.png"
+import themeLightUrl from "data-base64:../../assets/theme-light.png"
+
 import { downloadModel, modelAvailability } from "~core/ai"
 import { getItem, getSettings, normalizeSettings, setItem } from "~core/storage"
 import {
@@ -141,35 +144,50 @@ interface SegmentOption<T extends string> {
   icon: ComponentType<{ className?: string }>
 }
 
-const SegmentedPicker = <T extends string>({
-  label,
+const CardPicker = <T extends string, O extends SegmentOption<T>>({
+  title,
+  description,
   options,
   value,
-  onChange
+  onChange,
+  preview
 }: {
-  label: string
-  options: SegmentOption<T>[]
+  title: string
+  description: string
+  options: O[]
   value: T
   onChange: (value: T) => void
+  preview: (option: O) => ReactNode
 }) => (
-  <div role="radiogroup" aria-label={label} className="flex rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
-    {options.map(({ value: option, label: optionLabel, icon: Icon }) => (
-      <button
-        key={option}
-        type="button"
-        role="radio"
-        aria-checked={value === option}
-        onClick={() => onChange(option)}
-        className={cx(
-          "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-          value === option
-            ? "bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-gray-100"
-            : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-        )}>
-        <Icon className="h-3.5 w-3.5" />
-        {optionLabel}
-      </button>
-    ))}
+  <div>
+    <div className="text-sm text-gray-800 dark:text-gray-200">{title}</div>
+    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{description}</p>
+    <div role="radiogroup" aria-label={title} className="mt-2 grid grid-cols-3 gap-2">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={value === option.value}
+          onClick={() => onChange(option.value)}
+          className={cx(
+            "rounded-lg border p-2 text-left transition-colors",
+            value === option.value
+              ? "border-ginger-500 ring-1 ring-ginger-500"
+              : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
+          )}>
+          <div
+            className={cx(
+              "mb-2 flex items-center gap-1.5 text-xs font-medium",
+              value === option.value ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
+            )}>
+            <option.icon className="h-3.5 w-3.5" />
+            {option.label}
+          </div>
+          {preview(option)}
+        </button>
+      ))}
+    </div>
   </div>
 )
 
@@ -179,11 +197,60 @@ const APPEARANCE_OPTIONS: SegmentOption<Appearance>[] = [
   { value: "dark", label: "Dark", icon: Moon }
 ]
 
-const TOOLBAR_INDICATOR_OPTIONS: SegmentOption<ToolbarIndicator>[] = [
-  { value: "badge", label: "Count", icon: Hash },
-  { value: "color", label: "Color", icon: Palette },
-  { value: "none", label: "None", icon: EyeOff }
+const THEME_SHOT = "absolute inset-0 h-full w-full object-cover object-top"
+
+const ThemePreview = ({ appearance }: { appearance: Appearance }) => (
+  <div className="relative aspect-[4/3] overflow-hidden rounded-md border border-gray-200 dark:border-gray-700">
+    {appearance !== "dark" && <img src={themeLightUrl} alt="" className={THEME_SHOT} />}
+    {appearance !== "light" && (
+      <img
+        src={themeDarkUrl}
+        alt=""
+        className={cx(THEME_SHOT, appearance === "system" && "[clip-path:inset(0_0_0_50%)]")}
+      />
+    )}
+  </div>
+)
+
+interface ToolbarIconState {
+  count?: number
+  gray?: boolean
+}
+
+interface ToolbarIndicatorOption extends SegmentOption<ToolbarIndicator> {
+  waiting: ToolbarIconState
+  clear: ToolbarIconState
+}
+
+// Mirrors what updateBadge sets on the real icon
+const TOOLBAR_INDICATOR_OPTIONS: ToolbarIndicatorOption[] = [
+  { value: "badge", label: "Count", icon: Hash, waiting: { count: 3 }, clear: {} },
+  { value: "color", label: "Color", icon: Palette, waiting: {}, clear: { gray: true } },
+  { value: "none", label: "None", icon: EyeOff, waiting: {}, clear: {} }
 ]
+
+const ToolbarIconPreview = ({ state, caption }: { state: ToolbarIconState; caption: string }) => (
+  <div className="min-w-0 flex-1 text-center">
+    <div className="flex h-9 items-center justify-center rounded-md bg-gray-100 dark:bg-gray-800">
+      <span className="relative">
+        <Logo className={cx("h-5 w-5", state.gray && "opacity-75 grayscale")} />
+        {state.count && (
+          <span className="absolute -bottom-1 -right-2 rounded-[3px] bg-ginger-600 px-[3px] text-[9px] font-medium leading-3 text-white">
+            {state.count}
+          </span>
+        )}
+      </span>
+    </div>
+    <div className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">{caption}</div>
+  </div>
+)
+
+const ToolbarIndicatorPreview = ({ waiting, clear }: ToolbarIndicatorOption) => (
+  <div className="flex gap-1.5">
+    <ToolbarIconPreview state={waiting} caption="Suggestions" />
+    <ToolbarIconPreview state={clear} caption="All clear" />
+  </div>
+)
 
 const CHECKS: { key: keyof CleanupChecks; title: string; description: string }[] = [
   { key: "pr", title: "Merged & closed PRs", description: "GitHub pull requests that have been merged or closed." },
@@ -284,29 +351,21 @@ export const Options = () => {
 
         <div className="space-y-5">
           <Section title="Appearance">
-            <Row
+            <CardPicker
               title="Theme"
               description="System follows your computer's light or dark setting."
-              control={
-                <SegmentedPicker
-                  label="Theme"
-                  options={APPEARANCE_OPTIONS}
-                  value={draft.appearance}
-                  onChange={(appearance) => patch({ appearance })}
-                />
-              }
+              options={APPEARANCE_OPTIONS}
+              value={draft.appearance}
+              onChange={(appearance) => patch({ appearance })}
+              preview={(option) => <ThemePreview appearance={option.value} />}
             />
-            <Row
+            <CardPicker
               title="Toolbar icon"
-              description="How the icon shows waiting suggestions. Count adds a number badge. Color turns the icon gray when there's nothing to do. Hover the icon to see the count."
-              control={
-                <SegmentedPicker
-                  label="Toolbar icon"
-                  options={TOOLBAR_INDICATOR_OPTIONS}
-                  value={draft.toolbarIndicator}
-                  onChange={(toolbarIndicator) => patch({ toolbarIndicator })}
-                />
-              }
+              description="How the icon shows waiting suggestions. Hover the icon to see the count."
+              options={TOOLBAR_INDICATOR_OPTIONS}
+              value={draft.toolbarIndicator}
+              onChange={(toolbarIndicator) => patch({ toolbarIndicator })}
+              preview={(option) => <ToolbarIndicatorPreview {...option} />}
             />
           </Section>
 
