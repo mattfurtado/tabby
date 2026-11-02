@@ -5,7 +5,7 @@ import logoUrl from "data-base64:../../../assets/logo.png"
 
 import { sendMessage } from "~core/messages"
 
-import type { TabRow } from "../rows"
+import { closableTabIds, type TabRow } from "../rows"
 import { useStorageValue } from "../hooks/useStorageValue"
 import { usePopupStore, type TopView } from "../store"
 import { RefreshStatus } from "./RefreshStatus"
@@ -102,6 +102,7 @@ export const Footer = ({ onRefresh, selectedRows, useAI }: FooterProps) => {
 
   const selectedTabIds = selectedRows.flatMap((row) => row.tabs.map((tab) => tab.id))
   const count = selectedTabIds.length
+  const closeCount = selectedRows.flatMap(closableTabIds).length
 
   useEffect(() => {
     if (!count) setConfirmClose(false)
@@ -119,7 +120,7 @@ export const Footer = ({ onRefresh, selectedRows, useAI }: FooterProps) => {
     setConfirmClose(false)
     await sendMessage({
       type: "CLOSE_BULK",
-      items: selectedRows.map((row) => ({ id: row.key, tabIds: row.tabs.map((tab) => tab.id) }))
+      items: selectedRows.map((row) => ({ id: row.key, tabIds: closableTabIds(row) }))
     })
     setSelected([])
   }
@@ -151,7 +152,7 @@ export const Footer = ({ onRefresh, selectedRows, useAI }: FooterProps) => {
     return (
       <footer className="flex items-center gap-2 border-t border-red-200 bg-red-50 px-4 py-2.5 dark:border-red-900/60 dark:bg-red-950/40">
         <span className="flex-1 text-sm text-red-800 dark:text-red-200">
-          Close {count} {count === 1 ? "tab" : "tabs"}? This can't be undone.
+          Close {closeCount} {closeCount === 1 ? "tab" : "tabs"}? This can't be undone.
         </span>
         <Button variant="ghost" size="md" onClick={() => setConfirmClose(false)}>
           <X className="h-4 w-4" />
@@ -171,7 +172,7 @@ export const Footer = ({ onRefresh, selectedRows, useAI }: FooterProps) => {
       <div className="flex-1" />
       <Button variant="danger" size="md" disabled={!count} onClick={() => setConfirmClose(true)}>
         <Trash2 className="h-4 w-4" />
-        Close{count ? ` (${count})` : ""}
+        Close{count ? ` (${closeCount})` : ""}
       </Button>
       <Button variant="primary" size="md" disabled={!count} onClick={() => openCreateGroup(selectedTabIds)}>
         <Layers className="h-4 w-4" />

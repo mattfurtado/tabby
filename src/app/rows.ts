@@ -90,6 +90,16 @@ export const buildRows = (tabs: LiveTab[], groups: LiveGroup[], suggestions: Cle
 
 export const rowTabIds = (rows: TabRow[]) => rows.flatMap((row) => row.tabs.map((tab) => tab.id))
 
+// The copy a row opens, and the one that stays when its duplicates are closed
+export const primaryTab = (row: TabRow) => row.tabs.find((tab) => tab.active) ?? row.tabs[0]
+
+// Closing a row of copies keeps one of them, so only a row with a single tab closes the page
+export const closableTabIds = (row: TabRow) => {
+  if (row.tabs.length === 1) return [row.tabs[0].id]
+  const primary = primaryTab(row)
+  return row.tabs.filter((tab) => tab.id !== primary.id).map((tab) => tab.id)
+}
+
 export const formatAge = (since: number, now = Date.now()) => {
   const minutes = Math.max(1, Math.floor((now - since) / 60_000))
   if (minutes < 60) return `${minutes}m`

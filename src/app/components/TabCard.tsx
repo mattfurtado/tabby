@@ -4,7 +4,7 @@ import { sendMessage } from "~core/messages"
 import { displayUrl } from "~core/url"
 
 import type { LiveGroup } from "../hooks/useWindowData"
-import type { TabRow } from "../rows"
+import { closableTabIds, primaryTab, type TabRow } from "../rows"
 import { usePopupStore } from "../store"
 import { CleanupBadge, CurrentBadge } from "./CleanupBadge"
 import { MoveMenu } from "./MoveMenu"
@@ -20,10 +20,10 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
   const toggleSelected = usePopupStore((state) => state.toggleSelected)
   const tabIds = row.tabs.map((tab) => tab.id)
   const copies = row.tabs.length
-  const target = row.tabs.find((tab) => tab.active) ?? row.tabs[0]
+  const target = primaryTab(row)
   const hasDetails = !!row.group || groups.length > 0
   const url = displayUrl(row.url)
-  const closeLabel = copies > 1 ? "Close tabs" : "Close tab"
+  const closeLabel = copies > 1 ? "Close duplicates" : "Close tab"
 
   return (
     <div
@@ -71,7 +71,7 @@ export const TabCard = ({ row, groups }: TabCardProps) => {
           type="button"
           onClick={(event) => {
             event.stopPropagation()
-            void sendMessage({ type: "CLOSE_BULK", items: [{ id: row.key, tabIds }] })
+            void sendMessage({ type: "CLOSE_BULK", items: [{ id: row.key, tabIds: closableTabIds(row) }] })
           }}
           title={closeLabel}
           aria-label={closeLabel}
