@@ -11,7 +11,7 @@ import { usePopupStore, type TopView } from "../store"
 import { RefreshStatus } from "./RefreshStatus"
 import { Button, cx, IconButton } from "./ui"
 
-export const Logo = () => <img src={logoUrl} alt="" className="h-7 w-7" />
+export const Logo = ({ className = "h-7 w-7" }: { className?: string }) => <img src={logoUrl} alt="" className={className} />
 
 const FULLSCREEN_URL = "tabs/fullscreen.html"
 
